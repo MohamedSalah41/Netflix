@@ -1,6 +1,7 @@
+# 📂 Project Structure
 
-
-# Netflix/
+```bash
+Netflix/
 │
 ├── Controllers/                         # MVC Controllers
 │   ├── HomeController.cs                # Landing & browse pages
@@ -135,3 +136,4 @@
 ├── appsettings.Development.json
 ├── Program.cs
 └── README.md
+```
