@@ -2,6 +2,9 @@ namespace Netflix_clone.Models;
 
 public class SeriesOfMovies : GeneralSeries
 {
-    // TODO: wire Movie collection after Task 7
-    public ICollection<Movie> Movies { get; set; } = new List<Movie>();
+    public ICollection<Movie>? Movies { get; set; } = new List<Movie>();
+
+    // Own junction tables: SeriesOfMoviesActors, SeriesOfMoviesCategories
+    public ICollection<Actor> Actors { get; set; } = new List<Actor>();
+    public ICollection<Category> Categories { get; set; } = new List<Category>();
 }

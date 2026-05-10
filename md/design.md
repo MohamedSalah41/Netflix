@@ -80,10 +80,10 @@ BaseItem
                          └──────────────────────────┘
 
 ┌─────────────────────┐       ┌─────────────────────┐
-│       Actors        │       │      Categories      │
+│       Actors        │       │      Categories     │
 │─────────────────────│       │─────────────────────│
-│ Id     int    PK    │       │ Id    int    PK      │
-│ Name   string       │       │ Name  string         │
+│ Id     int    PK    │       │ Id    int    PK     │
+│ Name   string       │       │ Name  string        │
 │ Bio    string       │       └─────────────────────┘
 │ Photo  string  URL  │
 └─────────────────────┘
@@ -114,9 +114,9 @@ BaseItem
 │ Id               int       PK            │
 │ ProfileId        int       FK → Profiles │
 │ MediaItemId      int       FK → BaseItems│
-│ Progress         TimeSpan               │
-│ LastWatchedUtc   datetime               │
-│ IsFinished       bool                   │
+│ Progress         TimeSpan                │
+│ LastWatchedUtc   datetime                │
+│ IsFinished       bool                    │
 └──────────────────────────────────────────┘
 ```
 
