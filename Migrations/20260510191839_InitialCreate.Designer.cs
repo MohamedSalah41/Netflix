@@ -12,7 +12,7 @@ using Netflix_clone.Models;
 namespace Netflix_clone.Migrations
 {
     [DbContext(typeof(NetflixContext))]
-    [Migration("20260510144734_InitialCreate")]
+    [Migration("20260510191839_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
