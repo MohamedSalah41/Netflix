@@ -2,40 +2,40 @@
 
 ```
                         ┌─────────────────────────────┐
-                        │         BaseItem             │
-                        │   (abstract)                 │
+                        │         BaseItem            │
+                        │   (abstract)                │
                         │─────────────────────────────│
-                        │ PK  Id              int      │
-                        │     Name            string   │
-                        │     Description     string   │
-                        │     Poster          string   │
-                        │     Rating          decimal  │
+                        │ PK  Id              int     │
+                        │     Name            string  │
+                        │     Description     string  │
+                        │     Poster          string  │
+                        │     Rating          decimal │
                         └──────────────┬──────────────┘
                                        │
                     ┌──────────────────┴──────────────────┐
                     │                                     │
        ┌────────────▼────────────┐           ┌───────────▼───────────┐
-       │      GeneralSeries      │           │       MediaItem        │
-       │      (abstract)         │           │       (abstract)       │
+       │      GeneralSeries      │           │       MediaItem       │
+       │      (abstract)         │           │       (abstract)      │
        │─────────────────────────│           │───────────────────────│
-       │  TrailerUrl   string    │           │  VideoUrl      string  │
-       │  Actors       →Actor[]  │           │  DurationSeconds  int  │
+       │  TrailerUrl   string    │           │  VideoUrl      string │
+       │  Actors       →Actor[]  │           │  DurationSeconds  int │
        │  Categories   →Cat[]    │           └─────────┬─────────────┘
        └────────────┬────────────┘                     │
                     │                        ┌──────────┴──────────┐
           ┌─────────┴──────────┐             │                     │
           │                    │    ┌────────▼────────┐   ┌────────▼────────┐
-  ┌───────▼───────┐  ┌─────────▼──────────┐ │      Movie      │   │     Episode     │
+  ┌───────▼───────┐  ┌─────────▼──────────┐│      Movie      │   │     Episode     │
   │    Series     │  │   SeriesOfMovies   ││─────────────────│   │─────────────────│
   │───────────────│  │────────────────────││ SeriesOfMoviesId│   │ Number    int   │
-  │ Seasons →     │  │ Movies → Movie[]   ││   int? (FK)     │   │ SeasonId  int FK│
-  │   Season[]    │  └────────────────────┘│ SeriesOfMovies? │   │ Season    →     │
-  └───────┬───────┘           ▲            │ Actors  →Actor[]│   │           Season│
-          │                   │            │ Categories→Cat[]│   └────────┬────────┘
+  │ Seasons →     │  │ Movies → Movie[]   ││   int (FK)      │   │ SeasonId  int FK│
+  │   Season[]    │  └────────────────────┘│ SeriesOfMovies  │   │ Season    →     │
+  └───────┬───────┘           ▲            │                 │   │           Season│
+          │                   │            │                 │   └────────┬────────┘
           │ 1                 │ 0..*       └────────┬────────┘            │
           ▼ *                 │                     │                     │
   ┌───────────────┐           └─────────────────────┘                     │
-  │    Season     │                  (nullable FK)                         │
+  │    Season     │                                                       │
   │  (no base)    │◄──────────────────────────────────────────────────────┘
   │───────────────│                  SeasonId FK
   │ PK Id    int  │
@@ -50,10 +50,10 @@
 
 
   ┌─────────────────────┐        ┌─────────────────────┐
-  │        Actor        │        │      Category        │
+  │        Actor        │        │      Category       │
   │─────────────────────│        │─────────────────────│
-  │ PK  Id     int      │        │ PK  Id    int        │
-  │     Name   string   │        │     Name  string     │
+  │ PK  Id     int      │        │ PK  Id    int       │
+  │     Name   string   │        │     Name  string    │
   │     Bio    string?  │        └─────────────────────┘
   │     Photo  string?  │
   └─────────────────────┘
