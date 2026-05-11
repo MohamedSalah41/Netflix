@@ -1,0 +1,33 @@
+@model IEnumerable<Netflix_clone.Models.Profile>
+@{
+    ViewData["Title"] = "All Profiles";
+}
+
+<h2>All Profiles</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>User</th>
+            <th>IsKid</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var p in Model)
+{
+        <tr>
+            <td>@p.Id</td>
+            <td>@p.Name</td>
+            <td>@p.AppUser?.UserName</td>
+            <td>@p.IsKid</td>
+            <td>
+                <a asp-action="UpdateProfile" asp-route-id="@p.Id">Edit</a> |
+                <a asp-action="DeleteProfile" asp-route-id="@p.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
