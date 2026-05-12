@@ -2,79 +2,60 @@
 @model LoginModel
 
 @{
-    ViewData["Title"] = "Log in";
+    ViewData["Title"] = "Sign In";
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <form id="account" method="post">
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+<partial name="_MovieFormStyle" />
+
+<div class="form-page">
+    <a asp-page="/Index" asp-area="" class="form-back">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Back to Home
+    </a>
+
+    <div class="form-card">
+        <div class="form-card__header">
+            <div class="form-card__icon">🔑</div>
+            <div>
+                <div class="form-card__title">Sign In</div>
+                <div class="form-card__sub">Welcome back — sign in to your account</div>
+            </div>
+        </div>
+
+        <form id="account" method="post">
+            <div class="form-card__body">
+                <div asp-validation-summary="ModelOnly" class="form-error-box" role="alert"></div>
+
+                <div class="form-field">
                     <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    <input asp-for="Input.Email" class="form-input" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                    <span asp-validation-for="Input.Email" class="form-field-error"></span>
                 </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+
+                <div class="form-field">
                     <label asp-for="Input.Password" class="form-label">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    <input asp-for="Input.Password" class="form-input" autocomplete="current-password" aria-required="true" placeholder="Enter your password" />
+                    <span asp-validation-for="Input.Password" class="form-field-error"></span>
                 </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
+
+                <div class="form-field" style="display:flex;align-items:center;gap:8px;margin-bottom:0;">
+                    <input class="form-check-input" asp-for="Input.RememberMe" style="width:16px;height:16px;accent-color:var(--brand);cursor:pointer;" />
+                    <label asp-for="Input.RememberMe" class="form-label" style="margin:0;text-transform:none;font-size:13px;font-weight:400;letter-spacing:0;">
                         @Html.DisplayNameFor(m => m.Input.RememberMe)
                     </label>
                 </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+            </div>
+
+            <div class="form-footer" style="justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
+                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" style="color:var(--brand);text-decoration:none;">Create a new account</a>
                 </div>
-                <div>
-                    <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </form>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
+                <button id="login-submit" type="submit" class="btn-submit">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+                    Sign In
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 

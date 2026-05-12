@@ -1,0 +1,64 @@
+@page
+@model PersonalDataModel
+@{
+    ViewData["Title"] = "Personal Data";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<partial name="~/Views/Shared/_MovieFormStyle.cshtml" />
+
+<style>
+    .personal-data-section {
+        padding: 24px 32px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    .personal-data-section:last-child { border-bottom: none; }
+    .personal-data-section__title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+    }
+    .personal-data-section__desc {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+</style>
+
+<div class="form-page">
+    <div class="form-card">
+        <div class="form-card__header">
+            <div class="form-card__icon">🗂️</div>
+            <div>
+                <div class="form-card__title">Personal Data</div>
+                <div class="form-card__sub">Manage your personal data and account</div>
+            </div>
+        </div>
+
+        <div class="personal-data-section">
+            <div class="personal-data-section__title">Download Your Data</div>
+            <div class="personal-data-section__desc">
+                Download a copy of all personal data associated with your account in JSON format.
+            </div>
+            <form asp-page="DownloadPersonalData" method="post">
+                <button class="btn-ghost" type="submit">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download Data
+                </button>
+            </form>
+        </div>
+
+        <div class="personal-data-section">
+            <div class="personal-data-section__title" style="color:#f87171;">Delete Account</div>
+            <div class="personal-data-section__desc">
+                Permanently delete your account and all associated data. This action cannot be undone.
+            </div>
+            <a asp-page="DeletePersonalData" class="btn-ghost" style="text-decoration:none;color:#f87171;border-color:rgba(248,113,113,0.3);">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                Delete Account
+            </a>
+        </div>
+    </div>
+</div>
