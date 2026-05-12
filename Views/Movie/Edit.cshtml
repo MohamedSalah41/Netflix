@@ -1,0 +1,157 @@
+﻿@* @model Netflix_clone.Models.Movie
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Movie</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="SeriesOfMoviesId" class="control-label"></label>
+                <select asp-for="SeriesOfMoviesId" class="form-control" asp-items="ViewBag.SeriesOfMoviesId"></select>
+                <span asp-validation-for="SeriesOfMoviesId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="VideoUrl" class="control-label"></label>
+                <input asp-for="VideoUrl" class="form-control" />
+                <span asp-validation-for="VideoUrl" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DurationSeconds" class="control-label"></label>
+                <input asp-for="DurationSeconds" class="form-control" />
+                <span asp-validation-for="DurationSeconds" class="text-danger"></span>
+            </div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Poster" class="control-label"></label>
+                <input asp-for="Poster" class="form-control" />
+                <span asp-validation-for="Poster" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Rating" class="control-label"></label>
+                <input asp-for="Rating" class="form-control" />
+                <span asp-validation-for="Rating" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+ *@
+
+
+
+@model Netflix_clone.Models.Movie
+
+@{
+    ViewData["Title"] = "Edit Movie";
+    ViewBag.ActivePage = "Movies";
+
+    string formTitle = "Edit Movie";
+    string formSubtitle = "Update movie information.";
+    string formIcon = "✏️";
+    string backAction = "GetAllMovies";
+    string backLabel = "Back to Movies";
+}
+
+<partial name="_MovieFormStyle" />
+
+<div class="form-page">
+
+    <a asp-action="@backAction" class="form-back">
+        ← @backLabel
+    </a>
+
+    <div class="form-card">
+
+        <div class="form-card__header">
+            <div class="form-card__icon">@formIcon</div>
+
+            <div>
+                <div class="form-card__title">@formTitle</div>
+                <div class="form-card__sub">@formSubtitle</div>
+            </div>
+        </div>
+
+        <form asp-action="Edit">
+
+            <input type="hidden" asp-for="Id" />
+
+            <div asp-validation-summary="ModelOnly" class="form-error-box"></div>
+
+            <div class="form-card__body">
+
+                <div class="form-field">
+                    <label asp-for="VideoUrl" class="form-label"></label>
+                    <input asp-for="VideoUrl" class="form-input" />
+                    <span asp-validation-for="VideoUrl" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="DurationSeconds" class="form-label"></label>
+                    <input asp-for="DurationSeconds" type="time" step="1" class="form-input" />
+                    <span asp-validation-for="DurationSeconds" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-input" />
+                    <span asp-validation-for="Name" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Description" class="form-label"></label>
+                    <input asp-for="Description" class="form-input" />
+                    <span asp-validation-for="Description" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Poster" class="form-label"></label>
+                    <input asp-for="Poster" class="form-input" />
+                    <span asp-validation-for="Poster" class="form-field-error"></span>
+                </div>
+                <div class="form-field">
+                    <label asp-for="Rating" class="form-label"></label>
+                    <input asp-for="Rating" class="form-input" />
+                    <span asp-validation-for="Rating" class="form-field-error"></span>
+                </div>
+
+            </div>
+
+            <div class="form-footer">
+                <a asp-action="@backAction" class="btn-ghost">Cancel</a>
+
+                <button type="submit" class="btn-submit">
+                    Save Changes
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>

@@ -1,0 +1,224 @@
+﻿@* @model IEnumerable<Netflix_clone.Models.Movie>
+
+@{
+    ViewData["Title"] = "GetAllMovies";
+}
+
+<h1>GetAllMovies</h1>
+
+<p>
+    <a asp-action="AddMovie">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.SeriesOfMovies)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VideoUrl)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DurationSeconds)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Poster)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Rating)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.SeriesOfMovies.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.VideoUrl)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DurationSeconds)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Poster)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Rating)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+ *@
+
+
+
+
+@model IEnumerable<Netflix_clone.Models.Movie>
+
+@{
+    ViewData["Title"] = "Movies";
+    ViewBag.ActivePage = "Movies";
+}
+
+<style>
+
+    .movies-page {
+        padding: 40px;
+    }
+
+    .movies-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+    }
+
+    .movies-title h1 {
+        font-size: 34px;
+        margin-bottom: 6px;
+    }
+
+    .movies-title p {
+        color: var(--text-muted);
+    }
+
+    .movies-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+        gap: 24px;
+    }
+
+    .movie-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-medium);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+
+    .movie-poster {
+        width: 100%;
+        height: 360px;
+        object-fit: cover;
+    }
+
+    .movie-content {
+        padding: 20px;
+    }
+
+    .movie-name {
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+
+    .movie-description {
+        color: var(--text-muted);
+        font-size: 14px;
+        line-height: 1.7;
+        margin-bottom: 18px;
+    }
+
+    .movie-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .movie-btn {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .edit-btn {
+        background: var(--brand);
+        color: white;
+    }
+
+    .delete-btn {
+        border: 1px solid #ef4444;
+        color: #ef4444;
+    }
+
+</style>
+
+<div class="movies-page">
+
+    <div class="movies-header">
+
+        <div class="movies-title">
+            <h1>Movies</h1>
+            <p>Manage all movies in the system.</p>
+        </div>
+
+        <a asp-action="AddMovie" class="btn-submit">
+            + Add Movie
+        </a>
+
+    </div>
+
+    <div class="movies-grid">
+
+        @foreach (var item in Model)
+        {
+            <div class="movie-card">
+
+                <img src="@item.Poster" class="movie-poster" />
+
+                <div class="movie-content">
+
+                    <div class="movie-name">
+                        @item.Name
+                    </div>
+
+                    <div class="movie-description">
+                        @item.Description
+                    </div>
+
+                    <div class="movie-actions">
+
+                        <a asp-action="Edit"
+                           asp-route-id="@item.Id"
+                           class="movie-btn edit-btn">
+                            Edit
+                        </a>
+
+                        <a asp-action="Delete"
+                           asp-route-id="@item.Id"
+                           class="movie-btn delete-btn">
+                            Delete
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
