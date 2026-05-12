@@ -1,0 +1,446 @@
+﻿@* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  DeleteActor.cshtml  —  Delete confirmation page                    ║
+   ║                                                                      ║
+   ║  HOW TO REUSE:                                                       ║
+   ║  1. CUSTOMISE-MODEL   → change model type                            ║
+   ║  2. CUSTOMISE-HEADING → entity name, icon, warning text              ║
+   ║  3. CUSTOMISE-FIELDS  → summary rows shown before confirming         ║
+   ║  4. CUSTOMISE-ACTIONS → asp-action values and back link              ║
+   ╚══════════════════════════════════════════════════════════════════════╝ *@
+
+@* ── CUSTOMISE-MODEL ── *@
+@model Netflix_clone.Models.Actor
+
+@{
+    @* ── CUSTOMISE-HEADING ── *@
+    ViewData["Title"] = "Delete Actor";
+    ViewBag.ActivePage = "Actors";
+
+    string entityLabel = "Actor";          // shown in warning text
+    string pageIcon = "🎭";
+    string backAction = "GetAllActors";   @* ── CUSTOMISE-ACTIONS ── *@
+    string backLabel = "Cancel";
+    string deleteAction = "DeleteActor";    @* ── CUSTOMISE-ACTIONS ── *@
+}
+
+<style>
+    /* ── Narrow centred layout — delete pages should feel focused ── */
+    .del-page {
+        max-width: 560px;
+        margin: 40px auto;
+        padding: 0 24px 64px;
+    }
+
+    /* Back link */
+    .del-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--text-muted);
+        text-decoration: none;
+        margin-bottom: 28px;
+        transition: color 180ms;
+    }
+
+        .del-back:hover {
+            color: var(--text-secondary);
+        }
+
+    /* Outer card */
+    .del-card {
+        background: var(--bg-surface);
+        border: 1px solid rgba(248,113,113,0.25); /* red tint border */
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+
+    /* ── Warning header ── */
+    .del-header {
+        padding: 28px 32px;
+        border-bottom: 1px solid var(--border-subtle);
+        display: flex;
+        align-items: flex-start;
+        gap: 18px;
+    }
+
+    /* Danger icon badge */
+    .del-header__icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: rgba(248,113,113,0.1);
+        border: 1px solid rgba(248,113,113,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .del-header__title {
+        font-family: var(--font-display);
+        font-size: 26px;
+        letter-spacing: 1px;
+        color: #fca5a5; /* soft red — signals danger without screaming */
+        line-height: 1;
+    }
+
+    .del-header__sub {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 6px;
+        line-height: 1.5;
+    }
+
+    /* ── Entity preview rows — what will be deleted ── */
+    .del-preview {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .del-preview__title {
+        padding: 14px 32px 8px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+    }
+
+    .del-row {
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        align-items: start;
+        padding: 12px 32px;
+        gap: 16px;
+        transition: background 150ms;
+    }
+
+        .del-row:hover {
+            background: var(--bg-elevated);
+        }
+
+    .del-row__label {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        padding-top: 2px;
+    }
+
+    .del-row__value {
+        font-size: 14px;
+        color: var(--text-primary);
+        line-height: 1.5;
+        word-break: break-word;
+    }
+
+    .del-row__empty {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    .del-row__photo {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-sm);
+        object-fit: cover;
+        border: 1px solid var(--border-subtle);
+    }
+
+    /* ── Warning callout box ── */
+    .del-warning {
+        margin: 20px 32px;
+        padding: 14px 18px;
+        background: rgba(248,113,113,0.07);
+        border: 1px solid rgba(248,113,113,0.2);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .del-warning__icon {
+        font-size: 18px;
+        flex-shrink: 0;
+        line-height: 1.2;
+    }
+
+    .del-warning__text {
+        font-size: 13px;
+        color: #fca5a5;
+        line-height: 1.5;
+    }
+
+        .del-warning__text strong {
+            color: #fca5a5;
+            font-weight: 600;
+        }
+
+    /* ── Confirmation checkbox ── */
+    .del-confirm-wrap {
+        padding: 0 32px 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .del-confirm-wrap input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #f87171; /* tints the native checkbox red */
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .del-confirm-wrap label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+        }
+
+    /* ── Footer: cancel + delete buttons ── */
+    .del-footer {
+        padding: 20px 32px;
+        border-top: 1px solid var(--border-subtle);
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    /* Cancel (ghost) */
+    .btn-cancel {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 20px;
+        border-radius: var(--radius-full);
+        font-family: var(--font-body);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        background: transparent;
+        border: 1px solid var(--border-medium);
+        text-decoration: none;
+        transition: color 180ms, background 180ms;
+    }
+
+        .btn-cancel:hover {
+            color: var(--text-primary);
+            background: var(--bg-elevated);
+        }
+
+    /* Delete (solid red) — disabled until checkbox is ticked */
+    .btn-delete {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 22px;
+        background: #dc2626;
+        color: #fff;
+        font-family: var(--font-body);
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: var(--radius-full);
+        border: none;
+        cursor: pointer;
+        transition: background 200ms, box-shadow 200ms, transform 150ms, opacity 200ms;
+    }
+
+        .btn-delete:hover:not(:disabled) {
+            background: #ef4444;
+            box-shadow: 0 0 20px rgba(220,38,38,0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-delete:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        /* Disabled state — button is grey until checkbox is checked */
+        .btn-delete:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+    @@media (max-width: 600px) {
+        .del-page {
+            padding: 0 12px 48px;
+            margin-top: 24px;
+        }
+
+        .del-header, .del-row, .del-warning, .del-confirm-wrap, .del-footer {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .del-row {
+            grid-template-columns: 1fr;
+            gap: 4px;
+        }
+
+        .del-footer {
+            flex-direction: column-reverse;
+        }
+
+        .btn-cancel, .btn-delete {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .del-header__title {
+            font-size: 22px;
+        }
+    }
+</style>
+
+<div class="del-page">
+
+    @* ── Back / Cancel link ── *@
+    <a asp-action="@backAction" class="del-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6" />
+        </svg>
+        @backLabel
+    </a>
+
+    <div class="del-card">
+
+        @* ── Warning header ── *@
+        <div class="del-header">
+            <div class="del-header__icon" aria-hidden="true">🗑️</div>
+            <div>
+                @* ── CUSTOMISE-HEADING ── *@
+                <div class="del-header__title">Delete @entityLabel</div>
+                <div class="del-header__sub">
+                    You are about to permanently delete this @entityLabel.
+                    Please review the details below before confirming.
+                </div>
+            </div>
+        </div>
+
+        @* ── Entity summary (what the user is about to delete) ── *@
+        <div class="del-preview">
+            <div class="del-preview__title">@pageIcon @entityLabel to be deleted</div>
+
+            @* ── CUSTOMISE-FIELDS: mirror your entity's key fields ── *@
+
+            <div class="del-row">
+                <div class="del-row__label">@Html.DisplayNameFor(m => m.Name)</div>
+                <div class="del-row__value">
+                    @if (!string.IsNullOrWhiteSpace(Model?.Name))
+                    {
+                        @Html.DisplayFor(m => m.Name)
+                    }
+                    else
+                    {
+
+                        <span class="del-row__empty">—</span>
+                    }
+                </div>
+            </div>
+
+            <div class="del-row">
+                <div class="del-row__label">@Html.DisplayNameFor(m => m.Bio)</div>
+                <div class="del-row__value">
+                    @if (!string.IsNullOrWhiteSpace(Model?.Bio))
+                    {
+                        @Html.DisplayFor(m => m.Bio)
+                    }
+                    else
+                    {
+
+                        <span class="del-row__empty">No biography</span>
+                    }
+                </div>
+            </div>
+
+            <div class="del-row">
+                <div class="del-row__label">@Html.DisplayNameFor(m => m.Photo)</div>
+                <div class="del-row__value">
+                    @if (!string.IsNullOrWhiteSpace(Model?.Photo))
+                    {
+                        <img src="@Model.Photo" alt="Actor photo" class="del-row__photo"
+                             onerror="this.style.display='none'" />
+                    }
+                    else
+                    {
+                        <span class="del-row__empty">No photo</span>
+                    }
+                </div>
+            </div>
+
+        </div>
+
+        @* ── Warning callout ── *@
+        <div class="del-warning">
+            <span class="del-warning__icon">⚠️</span>
+            <div class="del-warning__text">
+                <strong>This action cannot be undone.</strong>
+                Deleting this @entityLabel will permanently remove all associated data from the system.
+            </div>
+        </div>
+
+        @* ── Confirmation checkbox ── *@
+        @* The checkbox must be ticked to enable the Delete button.
+           JS wires this up in the @section Scripts block below. *@
+        <div class="del-confirm-wrap">
+            <input type="checkbox" id="confirmCheck" />
+            <label for="confirmCheck">
+                I understand this is permanent and want to delete this @entityLabel
+            </label>
+        </div>
+
+        @* ── Form + Footer ── *@
+        @* ── CUSTOMISE-ACTIONS: change asp-action ── *@
+        <form asp-action="@deleteAction" method="post">
+            @* Hidden Id so the controller knows which record to delete *@
+            <input type="hidden" asp-for="Id" />
+
+            <div class="del-footer">
+                <a asp-action="@backAction" class="btn-cancel">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    Cancel
+                </a>
+
+                @* Disabled by default — JS enables it when checkbox is checked *@
+                <button type="submit" class="btn-delete" id="deleteBtn" disabled>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        <path d="M10 11v6M14 11v6" />
+                    </svg>
+                    Delete @entityLabel
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Enable the Delete button only when the confirmation checkbox is ticked.
+        // This prevents accidental deletions from a mis-click.
+        (function () {
+            const checkbox = document.getElementById('confirmCheck');
+            const btn      = document.getElementById('deleteBtn');
+            if (!checkbox || !btn) return;
+
+            checkbox.addEventListener('change', function () {
+                btn.disabled = !checkbox.checked;
+            });
+        })();
+    </script>
+}

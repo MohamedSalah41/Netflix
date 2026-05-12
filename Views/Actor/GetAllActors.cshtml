@@ -1,0 +1,442 @@
+﻿@* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  GetAllActors.cshtml  —  List / Index page                           ║
+   ║                                                                      ║
+   ║  HOW TO REUSE FOR ANOTHER ENTITY:                                    ║
+   ║  1. Change @model type  (line marked CUSTOMISE-MODEL)                ║
+   ║  2. Change the page heading and icon  (CUSTOMISE-HEADING)            ║
+   ║  3. Change asp-action / asp-controller values  (CUSTOMISE-ACTIONS)   ║
+   ║  4. Change the table columns  (CUSTOMISE-COLUMNS)                    ║
+   ╚══════════════════════════════════════════════════════════════════════╝ *@
+
+@* ── CUSTOMISE-MODEL: swap the model type for your entity ── *@
+@model IEnumerable<Netflix_clone.Models.Actor>
+
+@{
+    @* ── CUSTOMISE-HEADING: change the title and icon emoji ── *@
+    ViewData["Title"] = "Actors";
+    ViewBag.ActivePage = "Actors";          // highlights the nav link in _Layout
+
+    string pageTitle    = "Actors";          // shown in the page hero
+    string pageSubtitle = "Browse and manage all actors in the system.";
+    string pageIcon     = "🎭";             // emoji shown next to the heading
+    string addAction    = "AddActor";        // CUSTOMISE-ACTIONS: controller action for "Add"
+    string addLabel     = "Add Actor";       // button text
+}
+
+@* ── PAGE-SCOPED STYLES ─────────────────────────────────────────────────
+   All colours reference the CSS variables defined in _Layout.cshtml.
+   You do NOT need to redefine them here — they are inherited.
+   Only layout/spacing specific to this page lives here.
+──────────────────────────────────────────────────────────────────────── *@
+<style>
+    /* ── Page Hero (title strip above the table) ── */
+    .pg-hero {
+        padding         : 40px 48px 32px;
+        display         : flex;
+        align-items     : center;
+        justify-content : space-between;
+        flex-wrap       : wrap;
+        gap             : 16px;
+        border-bottom   : 1px solid var(--border-subtle);
+    }
+
+    .pg-hero__left   { display: flex; align-items: center; gap: 16px; }
+    .pg-hero__icon   {
+        width           : 52px;
+        height          : 52px;
+        border-radius   : 14px;
+        background      : var(--brand-dim);
+        border          : 1px solid rgba(229,9,20,0.25);
+        display         : flex;
+        align-items     : center;
+        justify-content : center;
+        font-size       : 24px;
+    }
+    .pg-hero__title {
+        font-family     : var(--font-display);
+        font-size       : 32px;
+        letter-spacing  : 1px;
+        color           : var(--text-primary);
+        line-height     : 1;
+    }
+    .pg-hero__sub {
+        font-size       : 13px;
+        color           : var(--text-muted);
+        margin-top      : 4px;
+    }
+
+    /* Add button in hero */
+    .btn-add {
+        display         : inline-flex;
+        align-items     : center;
+        gap             : 8px;
+        padding         : 10px 20px;
+        background      : var(--brand);
+        color           : #fff;
+        font-family     : var(--font-body);
+        font-size       : 13px;
+        font-weight     : 600;
+        border-radius   : var(--radius-full);
+        border          : none;
+        text-decoration : none;
+        transition      : background 200ms, box-shadow 200ms, transform 150ms;
+        cursor          : pointer;
+    }
+    .btn-add:hover {
+        background  : var(--brand-hover);
+        box-shadow  : var(--shadow-brand);
+        transform   : translateY(-1px);
+        color       : #fff;
+    }
+
+    /* ── Toolbar (search + filter row) ── */
+    .pg-toolbar {
+        padding         : 20px 48px;
+        display         : flex;
+        align-items     : center;
+        gap             : 12px;
+        flex-wrap       : wrap;
+    }
+
+    .toolbar-search {
+        display         : flex;
+        align-items     : center;
+        gap             : 8px;
+        background      : var(--bg-elevated);
+        border          : 1px solid var(--border-medium);
+        border-radius   : var(--radius-full);
+        padding         : 8px 16px;
+        flex            : 1;
+        max-width       : 360px;
+    }
+    .toolbar-search svg { color: var(--text-muted); flex-shrink: 0; }
+    .toolbar-search input {
+        background  : transparent;
+        border      : none;
+        outline     : none;
+        color       : var(--text-primary);
+        font-family : var(--font-body);
+        font-size   : 13px;
+        width       : 100%;
+    }
+    .toolbar-search input::placeholder { color: var(--text-muted); }
+
+    .toolbar-count {
+        font-size   : 12px;
+        color       : var(--text-muted);
+        margin-left : auto;
+    }
+
+    /* ── Table ── */
+    .pg-table-wrap {
+        padding     : 0 48px 48px;
+        overflow-x  : auto;   /* horizontal scroll on small screens */
+    }
+
+    .pg-table {
+        width           : 100%;
+        border-collapse : separate;
+        border-spacing  : 0 6px;   /* row gap via border-spacing trick */
+    }
+
+    /* Header row */
+    .pg-table thead tr {
+        background  : transparent;
+    }
+    .pg-table thead th {
+        padding         : 8px 16px;
+        font-size       : 10px;
+        font-weight     : 700;
+        letter-spacing  : 0.1em;
+        text-transform  : uppercase;
+        color           : var(--text-muted);
+        text-align      : left;
+        border-bottom   : 1px solid var(--border-subtle);
+        white-space     : nowrap;
+    }
+
+    /* Data rows — each row is its own "card" */
+    .pg-table tbody tr {
+        background  : var(--bg-surface);
+        transition  : background 180ms, transform 180ms;
+        cursor      : default;
+    }
+    .pg-table tbody tr:hover {
+        background  : var(--bg-elevated);
+        transform   : translateX(2px);
+    }
+
+    .pg-table tbody td {
+        padding     : 14px 16px;
+        font-size   : 13px;
+        color       : var(--text-secondary);
+        vertical-align: middle;
+    }
+
+    /* First column (Name) styled as primary text */
+    .pg-table tbody td:first-child {
+        color       : var(--text-primary);
+        font-weight : 500;
+        border-radius: var(--radius-md) 0 0 var(--radius-md);   /* pill left edge */
+        padding-left: 20px;
+    }
+
+    /* Last column (actions) rounded right edge */
+    .pg-table tbody td:last-child {
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        padding-right: 20px;
+    }
+
+    /* Bio cell — clamp long text to one line */
+    .cell-bio {
+        max-width   : 320px;
+        white-space : nowrap;
+        overflow    : hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Photo cell — small thumbnail */
+    .cell-photo img {
+        width        : 40px;
+        height       : 40px;
+        border-radius: var(--radius-sm);
+        object-fit   : cover;
+        background   : var(--bg-elevated);
+    }
+    /* Fallback initials avatar when no photo URL exists */
+    .cell-photo__initials {
+        width           : 40px;
+        height          : 40px;
+        border-radius   : var(--radius-sm);
+        background      : var(--brand-dim);
+        border          : 1px solid rgba(229,9,20,0.2);
+        display         : inline-flex;
+        align-items     : center;
+        justify-content : center;
+        font-size       : 14px;
+        font-weight     : 700;
+        color           : var(--brand);
+    }
+
+    /* Action links row */
+    .row-actions {
+        display     : flex;
+        align-items : center;
+        gap         : 4px;
+        justify-content: flex-end;
+    }
+
+    /* Ghost pill action buttons */
+    .action-btn {
+        display         : inline-flex;
+        align-items     : center;
+        gap             : 5px;
+        padding         : 5px 12px;
+        border-radius   : var(--radius-full);
+        font-size       : 12px;
+        font-weight     : 500;
+        text-decoration : none;
+        border          : 1px solid transparent;
+        transition      : background 180ms, border-color 180ms, color 180ms;
+        white-space     : nowrap;
+    }
+    .action-btn--view {
+        color        : var(--text-secondary);
+        border-color : var(--border-subtle);
+    }
+    .action-btn--view:hover {
+        color        : var(--text-primary);
+        background   : var(--bg-elevated);
+        border-color : var(--border-medium);
+    }
+    .action-btn--edit {
+        color        : #60a5fa;
+        border-color : rgba(96,165,250,0.2);
+    }
+    .action-btn--edit:hover {
+        background   : rgba(96,165,250,0.1);
+        border-color : rgba(96,165,250,0.4);
+        color        : #93c5fd;
+    }
+    .action-btn--delete {
+        color        : #f87171;
+        border-color : rgba(248,113,113,0.2);
+    }
+    .action-btn--delete:hover {
+        background   : rgba(248,113,113,0.1);
+        border-color : rgba(248,113,113,0.4);
+        color        : #fca5a5;
+    }
+
+    /* Empty state */
+    .pg-empty {
+        padding         : 80px 48px;
+        text-align      : center;
+        color           : var(--text-muted);
+    }
+    .pg-empty__icon { font-size: 48px; margin-bottom: 16px; }
+    .pg-empty__text { font-size: 15px; }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .pg-hero, .pg-toolbar, .pg-table-wrap { padding-left: 20px; padding-right: 20px; }
+        .pg-hero { padding-top: 24px; }
+    }
+</style>
+
+@* ── PAGE HERO ──────────────────────────────────────────────────────── *@
+<div class="pg-hero">
+    <div class="pg-hero__left">
+        @* ── CUSTOMISE-HEADING: change icon, title, subtitle ── *@
+        <div class="pg-hero__icon" aria-hidden="true">@pageIcon</div>
+        <div>
+            <div class="pg-hero__title">@pageTitle</div>
+            <div class="pg-hero__sub">@pageSubtitle</div>
+        </div>
+    </div>
+
+    @* ── CUSTOMISE-ACTIONS: change asp-action ── *@
+    <a asp-action="@addAction" class="btn-add">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        @addLabel
+    </a>
+</div>
+
+@* ── TOOLBAR (client-side filter) ───────────────────────────────────── *@
+<div class="pg-toolbar">
+    <div class="toolbar-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="tableFilter" placeholder="Filter @pageTitle…" autocomplete="off" />
+    </div>
+    <span class="toolbar-count" id="rowCount"></span>
+</div>
+
+@* ── TABLE ──────────────────────────────────────────────────────────── *@
+<div class="pg-table-wrap">
+    @if (Model != null && Model.Any())
+    {
+        <table class="pg-table" id="dataTable">
+            <thead>
+                <tr>
+                    @* ── CUSTOMISE-COLUMNS: add/remove <th> to match your entity ── *@
+                    <th>Name</th>
+                    <th>Bio</th>
+                    <th>Photo</th>
+                    <th style="text-align:right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        @* ── CUSTOMISE-COLUMNS: change DisplayFor targets ── *@
+                        <td>@Html.DisplayFor(m => item.Name)</td>
+
+                        <td class="cell-bio" title="@item.Bio">
+                            @Html.DisplayFor(m => item.Bio)
+                        </td>
+
+                        <td class="cell-photo">
+                            @if (!string.IsNullOrWhiteSpace(item.Photo))
+                            {
+                                <img src="@item.Photo" alt="@item.Name photo"
+                                     onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';" />
+                                <span class="cell-photo__initials" style="display:none">
+                                    @(item.Name?.Substring(0,1).ToUpper())
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="cell-photo__initials">
+                                    @(item.Name?.Substring(0,1).ToUpper())
+                                </span>
+                            }
+                        </td>
+
+                        <td>
+                            <div class="row-actions">
+                                @* ── CUSTOMISE-ACTIONS: change asp-action names ── *@
+                                <a asp-action="GetActorByID"  asp-route-id="@item.Id"
+                                   class="action-btn action-btn--view">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                         stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    Details
+                                </a>
+                                <a asp-action="UpdateActor" asp-route-id="@item.Id"
+                                   class="action-btn action-btn--edit">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                         stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    Edit
+                                </a>
+                                <a asp-action="DeleteActor" asp-route-id="@item.Id"
+                                   class="action-btn action-btn--delete">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                         stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6"/>
+                                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                        <path d="M10 11v6M14 11v6"/>
+                                    </svg>
+                                    Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="pg-empty">
+            <div class="pg-empty__icon">@pageIcon</div>
+            <div class="pg-empty__text">No @pageTitle found. Add one to get started.</div>
+        </div>
+    }
+</div>
+
+@* ── CLIENT-SIDE TABLE FILTER ────────────────────────────────────────
+   Pure JS — no server round-trip needed.
+   Filters by ANY visible text in the row (name, bio, etc.).
+──────────────────────────────────────────────────────────────────────── *@
+@section Scripts {
+    <script>
+    (function () {
+        const input    = document.getElementById('tableFilter');
+        const table    = document.getElementById('dataTable');
+        const countEl  = document.getElementById('rowCount');
+        if (!input || !table) return;
+
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+        // Update count label
+        function updateCount() {
+            const visible = rows.filter(r => r.style.display !== 'none').length;
+            countEl.textContent = visible + ' of ' + rows.length + ' records';
+        }
+
+        updateCount(); // initial count on load
+
+        input.addEventListener('input', function () {
+            const q = input.value.trim().toLowerCase();
+            rows.forEach(function (row) {
+                // Check if query matches any text in the row
+                const match = row.textContent.toLowerCase().includes(q);
+                row.style.display = match ? '' : 'none';
+            });
+            updateCount();
+        });
+    })();
+    </script>
+}

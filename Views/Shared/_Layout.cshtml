@@ -1,7 +1,93 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@*
+╔══════════════════════════════════════════════════════════════════════╗
+║                    _Layout.cshtml — WatchIt                         ║
+║  Shared master layout for every page in the application.            ║
+║  All CSS and JS are embedded inline for standalone portability.     ║
+║  Mock data lives in the @{ } block below — no project dependency.   ║
+╚══════════════════════════════════════════════════════════════════════╝
+*@
+
+@* ─────────────────────────────────────────────────────────────────────
+   SECTION: C# CODE BLOCK  (@{ })
+   ─────────────────────────────────────────────────────────────────────
+   Everything inside @{ } runs on the SERVER before the page is sent
+   to the browser. Variables declared here are available anywhere in
+   this file using @variableName syntax.
+
+   In a real app you would inject services or read from ViewData/Model.
+   Here we hard-code all data so the file works 100% standalone.
+──────────────────────────────────────────────────────────────────────── *@
+@{
+    // ── Page title ──────────────────────────────────────────────────
+    // ViewBag.Title is set by each individual page (e.g. Index.cshtml).
+    // The null-coalescing operator ?? provides a safe default so the
+    // <title> tag is never empty even if a page forgets to set it.
+    var pageTitle = ViewBag.Title ?? "WatchIt";
+
+    // ── Logged-in user (real Identity data) ─────────────────────────
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var userName  = User.Identity?.Name ?? "";
+    var initials  = userName.Length >= 2
+                        ? userName.Substring(0, 2).ToUpper()
+                        : (userName.Length == 1 ? userName.ToUpper() : "?");
+    var currentUser = new
+    {
+        Name        = userName,
+        Email       = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "",
+        AvatarColor = "#e50914",
+        Initials    = initials
+    };
+
+    // ── Mock: profile list ───────────────────────────────────────────
+    // Each user can have multiple profiles (kid-safe, adult, etc.).
+    // In production this list comes from ProfileService or a ViewModel.
+    var profiles = new[]
+    {
+        new { Id = 1, Name = "Ahmed",   Avatar = "AH", Color = "#e50914", IsKid = false, IsActive = true  },
+        new { Id = 2, Name = "Sara",    Avatar = "SA", Color = "#3b82f6", IsKid = false, IsActive = false },
+        new { Id = 3, Name = "Kids",    Avatar = "★",  Color = "#f59e0b", IsKid = true,  IsActive = false }
+    };
+
+    // ── Mock: navigation categories ─────────────────────────────────
+    // Shown in the "Browse" mega-dropdown. Real data comes from
+    // CategoryService or is passed via ViewBag from a BaseController.
+    var navCategories = new[]
+    {
+        "Action", "Drama", "Comedy", "Thriller", "Horror",
+        "Sci-Fi", "Romance", "Documentary", "Animation", "Crime"
+    };
+
+    // ── Mock: notifications ──────────────────────────────────────────
+    // Bell icon badge count + dropdown items.
+    var notifications = new[]
+    {
+        new { Icon = "🎬", Text = "New episodes of Breaking Bad added",  Time = "2h ago",  IsRead = false },
+        new { Icon = "⭐", Text = "Your rating on Inception was saved",  Time = "5h ago",  IsRead = false },
+        new { Icon = "🔔", Text = "Interstellar is leaving soon",        Time = "1d ago",  IsRead = true  },
+        new { Icon = "🎉", Text = "Welcome to WatchIt Premium!",         Time = "3d ago",  IsRead = true  }
+    };
+
+    // ── Unread count (computed from the array above) ─────────────────
+    // This is pure C# LINQ running server-side.
+    var unreadCount = notifications.Count(n => !n.IsRead);
+
+    // ── Mock: subscription tier ──────────────────────────────────────
+    var subscriptionPlan = "Premium";   // could be "Basic", "Standard", "Premium"
+
+    // ── Active nav item ──────────────────────────────────────────────
+    // In production, compare ViewContext.RouteData to highlight the
+    // correct nav link. Here we hard-code "Home" for demonstration.
+    var activePage = ViewBag.ActivePage as string ?? "Home";
+}
+
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="utf-8" />
+    @* ── META & CHARSET ─────────────────────────────────────────────
+       Standard HTML5 boilerplate. viewport meta is critical for
+       responsive design on mobile devices.
+    ──────────────────────────────────────────────────────────────────── *@
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - WatchIt</title>
     <script type="importmap"></script>
@@ -9,6 +95,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Netflix_clone.styles.css" asp-append-version="true" />
 </head>
+
 <body>
 
     <header>
@@ -45,7 +132,6 @@
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
-    </div>
 
     <footer class="wi-footer">
         <div class="container">
