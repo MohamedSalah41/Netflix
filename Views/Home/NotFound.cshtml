@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Page Not Found";
+    Layout = "_Layout";
+}
+
+<div class="d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 70vh;">
+
+    <div style="max-width: 480px; width: 100%;">
+        <img src="~/images/404.svg" alt="404 Page Not Found" style="width: 100%;" />
+        <p class="text-muted" style="font-size: 0.75rem;">
+            <a href="https://storyset.com/web" target="_blank">Web illustrations by Storyset</a>
+        </p>
+    </div>
+
+    <h1 class="fw-bold mt-2" style="font-size: 2rem;">Oops! Page not found.</h1>
+    <p class="text-muted mt-2 mb-4" style="max-width: 400px;">
+        The page you're looking for doesn't exist or has been moved.
+    </p>
+
+    <a asp-controller="Home" asp-action="Index" class="btn btn-danger btn-lg px-5 rounded-pill">
+        Go Back Home
+    </a>
+
+</div>
