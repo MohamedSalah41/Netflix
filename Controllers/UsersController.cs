@@ -29,7 +29,15 @@ namespace Netflix_clone.Controllers
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
-            return View(user);
+
+            var vm = new EditViewModel
+            {
+                Id       = user.Id,
+                UserName = user.UserName,
+                Email    = user.Email
+            };
+
+            return View(vm);
         }
 
         // POST /Users/Edit/id
@@ -37,15 +45,15 @@ namespace Netflix_clone.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditViewModel editViewModel)
         {
-            string  id = editViewModel.Id.ToString();
-            string email = editViewModel.Email;
-            string userName = editViewModel.UserName;
+            if (!ModelState.IsValid)
+                return View(editViewModel);
 
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.FindByIdAsync(editViewModel.Id);
             if (user == null) return NotFound();
 
-            user.Email = email;
-            user.UserName = userName;
+            user.Email    = editViewModel.Email;
+            user.UserName = editViewModel.UserName;
+
             var result = await _userManager.UpdateAsync(user);
 
             if (result.Succeeded) return RedirectToAction(nameof(Index));
@@ -53,13 +61,21 @@ namespace Netflix_clone.Controllers
             foreach (var error in result.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
 
+            return View(editViewModel);
+        }
+
+        // GET /Users/Delete/id  — confirmation page
+        public async Task<IActionResult> Delete(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
             return View(user);
         }
 
         // POST /Users/Delete/id
-        [HttpPost]
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
