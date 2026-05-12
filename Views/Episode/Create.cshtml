@@ -1,0 +1,81 @@
+﻿@model Netflix_clone.Models.Episode
+
+@{
+    ViewData["Title"] = "Add Episode";
+    ViewBag.ActivePage = "Episodes";
+
+    string formTitle = "Add Episode";
+    string formSubtitle = "Fill in the details below to add a new Episode.";
+    string formIcon = "🎬";
+    string backAction = "GetAllEpisodes";
+    string backLabel = "Back to Episodes";
+}
+
+<partial name="_MovieFormStyle" />
+
+<div class="form-page">
+
+    <a asp-action="@backAction" class="form-back">← @backLabel</a>
+
+    <div class="form-card">
+
+        <div class="form-card__header">
+            <div class="form-card__icon">@formIcon</div>
+            <div>
+                <div class="form-card__title">@formTitle</div>
+                <div class="form-card__sub">@formSubtitle</div>
+            </div>
+        </div>
+
+        <form asp-action="Create">
+
+            <div asp-validation-summary="ModelOnly" class="form-error-box"></div>
+
+            <div class="form-card__body">
+
+                <div class="form-field">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-input" />
+                    <span asp-validation-for="Name" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Number" class="form-label"></label>
+                    <input asp-for="Number" class="form-input" />
+                    <span asp-validation-for="Number" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Description" class="form-label"></label>
+                    <input asp-for="Description" class="form-input" />
+                    <span asp-validation-for="Description" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="VideoUrl" class="form-label"></label>
+                    <input asp-for="VideoUrl" class="form-input" />
+                    <span asp-validation-for="VideoUrl" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="SeasonId" class="form-label"></label>
+
+                    <select asp-for="SeasonId" class="form-input"
+                            asp-items="@(new SelectList(ViewBag.Seasons, "Id", "Name"))">
+                        <option value="">-- Select Season --</option>
+                    </select>
+
+                    <span asp-validation-for="SeasonId" class="form-field-error"></span>
+                </div>
+
+            </div>
+
+            <div class="form-footer">
+                <a asp-action="@backAction" class="btn-ghost">Cancel</a>
+                <button type="submit" class="btn-submit">Save Episode</button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
