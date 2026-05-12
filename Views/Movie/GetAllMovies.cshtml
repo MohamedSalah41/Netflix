@@ -163,6 +163,16 @@
         color: #ef4444;
     }
 
+    .movie-card {
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .movie-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+        }
+
 </style>
 
 <div class="movies-page">
@@ -184,7 +194,8 @@
 
         @foreach (var item in Model)
         {
-            <div class="movie-card">
+            <div class="movie-card"
+                 onclick="window.location='@Url.Action("Details", "Movie", new { id = item.Id })'">
 
                 <img src="@item.Poster" class="movie-poster" />
 
@@ -202,13 +213,15 @@
 
                         <a asp-action="Edit"
                            asp-route-id="@item.Id"
-                           class="movie-btn edit-btn">
+                           class="movie-btn edit-btn"
+                           onclick="event.stopPropagation();">
                             Edit
                         </a>
 
                         <a asp-action="Delete"
                            asp-route-id="@item.Id"
-                           class="movie-btn delete-btn">
+                           class="movie-btn delete-btn"
+                           onclick="event.stopPropagation();">
                             Delete
                         </a>
 
