@@ -380,8 +380,11 @@
                 </div>
                 <div class="form-field">
                     <label asp-for="Poster" class="form-label"></label>
-                    <input asp-for="Poster" class="form-input" />
-                    <span asp-validation-for="Poster" class="form-field-error"></span>
+                    <input asp-for="Poster"
+                           class="form-input"
+                           placeholder="Paste image URL..." />
+                    <span asp-validation-for="Poster"
+                          class="form-field-error"></span>
                 </div>
 
             </div><!-- /.form-card__body -->
