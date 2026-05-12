@@ -24,15 +24,18 @@
     // <title> tag is never empty even if a page forgets to set it.
     var pageTitle = ViewBag.Title ?? "WatchIt";
 
-    // ── Mock: logged-in user ─────────────────────────────────────────
-    // In production this would come from User.Identity or a service.
-    // We use an anonymous object so Razor can access .Name, .Email, etc.
+    // ── Logged-in user (real Identity data) ─────────────────────────
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var userName  = User.Identity?.Name ?? "";
+    var initials  = userName.Length >= 2
+                        ? userName.Substring(0, 2).ToUpper()
+                        : (userName.Length == 1 ? userName.ToUpper() : "?");
     var currentUser = new
     {
-        Name = "Ahmed Hassan",
-        Email = "ahmed@watchit.io",
-        AvatarColor = "#e50914",          // used as CSS background for the initials avatar
-        Initials = "AH"
+        Name        = userName,
+        Email       = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "",
+        AvatarColor = "#e50914",
+        Initials    = initials
     };
 
     // ── Mock: profile list ───────────────────────────────────────────
@@ -571,7 +574,39 @@
             }
 
             /* ══════════════════════════════════════════════════════════
-               8. PROFILE DROPDOWN
+               8. AUTH BUTTONS (Login / Register — shown when logged out)
+            ══════════════════════════════════════════════════════════ */
+            .auth-btn {
+                display      : inline-flex;
+                align-items  : center;
+                padding      : var(--sp-2) var(--sp-4);
+                border-radius: var(--radius-full);
+                font-size    : 13px;
+                font-weight  : 600;
+                transition   : background var(--duration), color var(--duration),
+                               border-color var(--duration);
+                white-space  : nowrap;
+            }
+            .auth-btn--ghost {
+                color        : var(--text-secondary);
+                border       : 1px solid var(--border-medium);
+            }
+            .auth-btn--ghost:hover {
+                color        : var(--text-primary);
+                border-color : var(--border-medium);
+                background   : var(--bg-elevated);
+            }
+            .auth-btn--solid {
+                background   : var(--brand);
+                color        : #fff;
+                border       : 1px solid transparent;
+            }
+            .auth-btn--solid:hover {
+                background   : var(--brand-hover);
+            }
+
+            /* ══════════════════════════════════════════════════════════
+               9. PROFILE DROPDOWN
                ══════════════════════════════════════════════════════════
                Avatar button → opens a dropdown with profile switcher
                and account actions.
@@ -1098,9 +1133,18 @@
                     </div>
                 </div>
 
-                <!-- Profile Avatar & Dropdown -->
-                @* The profile dropdown is the most complex piece.
-                   It shows: user info strip, profile switcher, action links. *@
+                <!-- Auth: Login/Register (logged out) OR Profile dropdown (logged in) -->
+                @if (!isAuthenticated)
+                {
+                    <!-- Not logged in — show Login and Register buttons -->
+                    <a asp-area="Identity" asp-page="/Account/Login"
+                       class="auth-btn auth-btn--ghost">Sign In</a>
+                    <a asp-area="Identity" asp-page="/Account/Register"
+                       class="auth-btn auth-btn--solid">Register</a>
+                }
+                else
+                {
+                <!-- Profile Avatar & Dropdown (logged in) -->
                 <div class="profile-wrap" id="dd-profile">
                     <button class="profile-btn"
                             id="profileBtn"
@@ -1137,8 +1181,6 @@
                         <!-- Profile Switcher -->
                         <div class="profile-panel__section">
                             <div class="profile-panel__label">Switch Profile</div>
-                            @* Loop over the mock profiles array.
-                               The active profile is highlighted and shows a checkmark. *@
                             @foreach (var profile in profiles)
                             {
                                 <button class="profile-item @(profile.IsActive ? "active" : "")"
@@ -1179,17 +1221,23 @@
                                 </svg>
                                 Subscription
                             </a>
-                            <a href="/Auth/Logout" class="profile-action danger" role="menuitem">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                                    <polyline points="16 17 21 12 16 7" />
-                                    <line x1="21" y1="12" x2="9" y2="12" />
-                                </svg>
-                                Sign Out
-                            </a>
+                            <!-- Sign Out — posts to Identity logout endpoint -->
+                            <form asp-area="Identity" asp-page="/Account/Logout"
+                                  asp-route-returnUrl="/" method="post" style="margin:0;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="profile-action danger" role="menuitem" style="width:100%;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                        <polyline points="16 17 21 12 16 7" />
+                                        <line x1="21" y1="12" x2="9" y2="12" />
+                                    </svg>
+                                    Sign Out
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
+                }
 
                 <!-- Hamburger (mobile only) -->
                 <button class="hamburger" id="hamburger" aria-label="Toggle mobile menu" aria-expanded="false">
@@ -1212,6 +1260,21 @@
         @foreach (var cat in navCategories)
         {
             <a href="/Browse?category=@cat.ToLower()" class="mobile-menu__link">@cat</a>
+        }
+        <div class="mobile-menu__divider" aria-hidden="true"></div>
+        @if (!isAuthenticated)
+        {
+            <a asp-area="Identity" asp-page="/Account/Login"    class="mobile-menu__link">Sign In</a>
+            <a asp-area="Identity" asp-page="/Account/Register" class="mobile-menu__link">Register</a>
+        }
+        else
+        {
+            <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/" method="post" style="margin:0;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="mobile-menu__link" style="width:100%; text-align:left; background:none; border:none; cursor:pointer; color:inherit; font:inherit; padding: var(--sp-3) var(--sp-4);">
+                    Sign Out
+                </button>
+            </form>
         }
     </div>
 
