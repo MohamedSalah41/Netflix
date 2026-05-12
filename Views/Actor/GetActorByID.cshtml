@@ -1,37 +1,351 @@
-﻿@model Netflix_clone.Models.Actor
+﻿@* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  GetActorByID.cshtml  —  Detail / View page                         ║
+   ║                                                                      ║
+   ║  HOW TO REUSE:                                                       ║
+   ║  1. CUSTOMISE-MODEL   → change model type                            ║
+   ║  2. CUSTOMISE-HEADING → title, subtitle, icon                        ║
+   ║  3. CUSTOMISE-FIELDS  → add/remove detail rows                       ║
+   ║  4. CUSTOMISE-ACTIONS → asp-action values and back link              ║
+   ╚══════════════════════════════════════════════════════════════════════╝ *@
+
+@* ── CUSTOMISE-MODEL ── *@
+@model Netflix_clone.Models.Actor
 
 @{
-    ViewData["Title"] = "GetActorByID";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    @* ── CUSTOMISE-HEADING ── *@
+    ViewData["Title"] = "Actor Details";
+    ViewBag.ActivePage = "Actors";
+
+    string pageIcon = "🎭";
+    string backAction = "GetAllActors";   @* ── CUSTOMISE-ACTIONS ── *@
+    string backLabel = "Back to Actors";
+    string editAction = "UpdateActor";    @* ── CUSTOMISE-ACTIONS ── *@
 }
 
-<h1>GetActorByID</h1>
+<style>
+    /* ── Centred detail card ── */
+    .detail-page {
+        max-width : 720px;
+        margin    : 40px auto;
+        padding   : 0 24px 64px;
+    }
 
-<div>
-    <h4>Actor</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Bio)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Bio)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Photo)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Photo)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="UpdateActor" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="GetAllActors">Back to List</a>
+    /* Back link */
+    .detail-back {
+        display         : inline-flex;
+        align-items     : center;
+        gap             : 6px;
+        font-size       : 13px;
+        color           : var(--text-muted);
+        text-decoration : none;
+        margin-bottom   : 28px;
+        transition      : color 180ms;
+    }
+    .detail-back:hover { color: var(--text-secondary); }
+
+    /* Outer card */
+    .detail-card {
+        background    : var(--bg-surface);
+        border        : 1px solid var(--border-medium);
+        border-radius : var(--radius-lg);
+        overflow      : hidden;
+    }
+
+    /* ── Hero banner at the top of the card ──
+       Left: large avatar/photo
+       Right: name + meta badges + action buttons              */
+    .detail-hero {
+        padding         : 32px;
+        display         : flex;
+        align-items     : flex-start;
+        gap             : 28px;
+        border-bottom   : 1px solid var(--border-subtle);
+        flex-wrap       : wrap;
+    }
+
+    /* Large photo / initials avatar */
+    .detail-photo {
+        width           : 110px;
+        height          : 110px;
+        border-radius   : var(--radius-lg);
+        object-fit      : cover;
+        flex-shrink     : 0;
+        border          : 1px solid var(--border-medium);
+        background      : var(--bg-elevated);
+    }
+    .detail-photo--initials {
+        width           : 110px;
+        height          : 110px;
+        border-radius   : var(--radius-lg);
+        background      : var(--brand-dim);
+        border          : 1px solid rgba(229,9,20,0.25);
+        display         : flex;
+        align-items     : center;
+        justify-content : center;
+        font-family     : var(--font-display);
+        font-size       : 40px;
+        color           : var(--brand);
+        flex-shrink     : 0;
+    }
+
+    .detail-hero__info { flex: 1; min-width: 200px; }
+
+    .detail-hero__label {
+        font-size       : 10px;
+        font-weight     : 700;
+        letter-spacing  : 0.1em;
+        text-transform  : uppercase;
+        color           : var(--brand);
+        margin-bottom   : 6px;
+    }
+    .detail-hero__name {
+        font-family     : var(--font-display);
+        font-size       : 34px;
+        letter-spacing  : 1px;
+        color           : var(--text-primary);
+        line-height     : 1.1;
+    }
+
+    /* ID badge */
+    .detail-id-badge {
+        display         : inline-flex;
+        align-items     : center;
+        gap             : 5px;
+        margin-top      : 10px;
+        padding         : 4px 10px;
+        background      : var(--bg-elevated);
+        border          : 1px solid var(--border-subtle);
+        border-radius   : var(--radius-full);
+        font-size       : 11px;
+        color           : var(--text-muted);
+    }
+
+    /* Action buttons row */
+    .detail-hero__actions {
+        display     : flex;
+        gap         : 8px;
+        margin-top  : 20px;
+        flex-wrap   : wrap;
+    }
+
+    .btn-edit {
+        display         : inline-flex;
+        align-items     : center;
+        gap             : 7px;
+        padding         : 9px 20px;
+        background      : rgba(96,165,250,0.1);
+        border          : 1px solid rgba(96,165,250,0.3);
+        border-radius   : var(--radius-full);
+        color           : #60a5fa;
+        font-family     : var(--font-body);
+        font-size       : 13px;
+        font-weight     : 500;
+        text-decoration : none;
+        transition      : background 180ms, border-color 180ms, color 180ms;
+    }
+    .btn-edit:hover {
+        background      : rgba(96,165,250,0.18);
+        border-color    : rgba(96,165,250,0.5);
+        color           : #93c5fd;
+    }
+
+    .btn-danger {
+        display         : inline-flex;
+        align-items     : center;
+        gap             : 7px;
+        padding         : 9px 20px;
+        background      : rgba(248,113,113,0.08);
+        border          : 1px solid rgba(248,113,113,0.25);
+        border-radius   : var(--radius-full);
+        color           : #f87171;
+        font-family     : var(--font-body);
+        font-size       : 13px;
+        font-weight     : 500;
+        text-decoration : none;
+        transition      : background 180ms, border-color 180ms, color 180ms;
+    }
+    .btn-danger:hover {
+        background      : rgba(248,113,113,0.15);
+        border-color    : rgba(248,113,113,0.45);
+        color           : #fca5a5;
+    }
+
+    /* ── Detail rows section ── */
+    .detail-body { padding: 8px 0; }
+
+    .detail-row {
+        display         : grid;
+        grid-template-columns: 160px 1fr;
+        align-items     : start;
+        padding         : 16px 32px;
+        border-bottom   : 1px solid var(--border-subtle);
+        gap             : 16px;
+        transition      : background 150ms;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row:hover      { background: var(--bg-elevated); }
+
+    .detail-row__label {
+        font-size       : 11px;
+        font-weight     : 600;
+        letter-spacing  : 0.07em;
+        text-transform  : uppercase;
+        color           : var(--text-muted);
+        padding-top     : 2px;
+    }
+
+    .detail-row__value {
+        font-size       : 14px;
+        color           : var(--text-primary);
+        line-height     : 1.6;
+        word-break      : break-word;
+    }
+
+    /* Empty / null value styling */
+    .detail-row__empty {
+        font-size       : 13px;
+        color           : var(--text-muted);
+        font-style      : italic;
+    }
+
+    /* Inline photo thumbnail in the detail row */
+    .detail-row__photo {
+        width           : 56px;
+        height          : 56px;
+        border-radius   : var(--radius-md);
+        object-fit      : cover;
+        border          : 1px solid var(--border-subtle);
+    }
+
+    @@media (max-width: 600px) {
+        .detail-page { padding: 0 12px 48px; margin-top: 24px; }
+        .detail-hero { padding: 20px; gap: 18px; }
+        .detail-photo, .detail-photo--initials { width: 80px; height: 80px; font-size: 28px; }
+        .detail-row { grid-template-columns: 1fr; padding: 14px 20px; gap: 4px; }
+        .detail-hero__name { font-size: 26px; }
+    }
+</style>
+
+<div class="detail-page">
+
+    @* ── Back link ── *@
+    <a asp-action="@backAction" class="detail-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6" />
+        </svg>
+        @backLabel
+    </a>
+
+    <div class="detail-card">
+
+        @* ── Hero: photo + name + action buttons ── *@
+        <div class="detail-hero">
+
+            @* Photo or initials fallback *@
+            @if (!string.IsNullOrWhiteSpace(Model?.Photo))
+            {
+                <img src="@Model.Photo"
+                     alt="@Model.Name"
+                     class="detail-photo"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                <div class="detail-photo--initials" style="display:none">
+                    @(Model.Name?.Substring(0, 1).ToUpper())
+                </div>
+            }
+            else
+            {
+                <div class="detail-photo--initials">
+                    @(Model?.Name?.Substring(0, 1).ToUpper())
+                </div>
+            }
+
+            <div class="detail-hero__info">
+                @* ── CUSTOMISE-HEADING ── *@
+                <div class="detail-hero__label">@pageIcon Actor Profile</div>
+                <div class="detail-hero__name">@Model?.Name</div>
+
+                @* ID badge — useful during development / admin *@
+                <div class="detail-id-badge">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" />
+                        <path d="M16 3H8L6 7h12z" />
+                    </svg>
+                    ID: @Model?.Id
+                </div>
+
+                <div class="detail-hero__actions">
+                    @* ── CUSTOMISE-ACTIONS ── *@
+                    <a asp-action="@editAction" asp-route-id="@Model?.Id" class="btn-edit">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                        Edit Actor
+                    </a>
+                    <a asp-action="DeleteActor" asp-route-id="@Model?.Id" class="btn-danger">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        </svg>
+                        Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        @* ── Detail rows ── *@
+        @* ── CUSTOMISE-FIELDS: copy/remove rows to match your entity ── *@
+        <div class="detail-body">
+
+            <div class="detail-row">
+                <div class="detail-row__label">@Html.DisplayNameFor(m => m.Name)</div>
+                <div class="detail-row__value">
+                    @if (!string.IsNullOrWhiteSpace(Model?.Name))
+                    {
+                        @Html.DisplayFor(m => m.Name)
+                    }
+                    else
+                    {
+
+                        <span class="detail-row__empty">Not provided</span>
+                    }
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-row__label">@Html.DisplayNameFor(m => m.Bio)</div>
+                <div class="detail-row__value">
+                    @if (!string.IsNullOrWhiteSpace(Model?.Bio))
+                    {
+                        @Html.DisplayFor(m => m.Bio)
+                    }
+                    else
+                    {
+
+                        <span class="detail-row__empty">No biography available</span>
+                    }
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-row__label">@Html.DisplayNameFor(m => m.Photo)</div>
+                <div class="detail-row__value">
+                    @if (!string.IsNullOrWhiteSpace(Model?.Photo))
+                    {
+                        <img src="@Model.Photo" alt="Actor photo" class="detail-row__photo"
+                             onerror="this.style.display='none'" />
+                    }
+                    else
+                    {
+                        <span class="detail-row__empty">No photo URL provided</span>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
