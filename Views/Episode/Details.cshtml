@@ -1,0 +1,97 @@
+﻿@model Netflix_clone.Models.Episode
+
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<style>
+
+    .details-page {
+        padding: 40px;
+    }
+
+    .episode-hero {
+        position: relative;
+        border-radius: 24px;
+        overflow: hidden;
+        min-height: 500px;
+        display: flex;
+        align-items: end;
+        padding: 40px;
+        background: #000;
+    }
+
+    .episode-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.4));
+    }
+
+    .episode-content {
+        position: relative;
+        z-index: 2;
+        max-width: 700px;
+    }
+
+    .episode-title {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .episode-meta {
+        color: #d1d5db;
+        margin-bottom: 16px;
+    }
+
+    .episode-description {
+        color: #e5e7eb;
+        margin-bottom: 20px;
+    }
+
+    .episode-video {
+        width: 100%;
+        margin-top: 40px;
+    }
+
+        .episode-video iframe {
+            width: 100%;
+            height: 600px;
+            border-radius: 20px;
+        }
+
+</style>
+
+<div class="details-page">
+
+    <div class="episode-hero">
+
+        <div class="episode-overlay"></div>
+
+        <div class="episode-content">
+
+            <div class="episode-title">
+                S@Model.SeasonId : E@Model.EpisodeNumber - @Model.Name
+            </div>
+
+            <div class="episode-meta">
+                🎬 Episode @Model.Number
+            </div>
+
+            <div class="episode-description">
+                @Model.Description
+            </div>
+
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-submit">
+                Edit Episode
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="episode-video">
+        <iframe src="@Model.VideoUrl" allowfullscreen></iframe>
+    </div>
+
+</div>

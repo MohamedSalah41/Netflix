@@ -1,0 +1,73 @@
+﻿@model Netflix_clone.Models.Episode
+
+@{
+    ViewData["Title"] = "Edit Episode";
+
+    string formTitle = "Edit Episode";
+    string formSubtitle = "Update episode information.";
+    string formIcon = "✏️";
+    string backAction = "GetAllEpisodes";
+    string backLabel = "Back to Episodes";
+}
+
+<partial name="_MovieFormStyle" />
+
+<div class="form-page">
+
+    <a asp-action="@backAction" class="form-back">← @backLabel</a>
+
+    <div class="form-card">
+
+        <div class="form-card__header">
+            <div class="form-card__icon">@formIcon</div>
+            <div>
+                <div class="form-card__title">@formTitle</div>
+                <div class="form-card__sub">@formSubtitle</div>
+            </div>
+        </div>
+
+        <form asp-action="Edit">
+
+            <input type="hidden" asp-for="Id" />
+
+            <div asp-validation-summary="ModelOnly" class="form-error-box"></div>
+
+            <div class="form-card__body">
+
+                <div class="form-field">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-input" />
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Number" class="form-label"></label>
+                    <input asp-for="Number" class="form-input" />
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Description" class="form-label"></label>
+                    <input asp-for="Description" class="form-input" />
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="VideoUrl" class="form-label"></label>
+                    <input asp-for="VideoUrl" class="form-input" />
+                </div>
+
+                <select asp-for="SeasonId"
+                        class="form-input"
+                        asp-items="@(new SelectList(ViewBag.Seasons, "Id", "Name"))">
+                    <option value="">-- Select Season --</option>
+                </select>
+
+            </div>
+
+            <div class="form-footer">
+                <a asp-action="@backAction" class="btn-ghost">Cancel</a>
+                <button type="submit" class="btn-submit">Save Changes</button>
+            </div>
+
+        </form>
+
+    </div>
+</div>

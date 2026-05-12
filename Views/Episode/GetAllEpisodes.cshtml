@@ -1,0 +1,171 @@
+﻿@model IEnumerable<Netflix_clone.Models.Episode>
+
+@{
+    ViewData["Title"] = "Episodes";
+    ViewBag.ActivePage = "Episodes";
+}
+
+<style>
+
+    .episodes-page {
+        padding: 40px;
+    }
+
+    .episodes-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+    }
+
+    .episodes-title h1 {
+        font-size: 34px;
+        margin-bottom: 6px;
+    }
+
+    .episodes-title p {
+        color: var(--text-muted);
+    }
+
+    .episodes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+        gap: 24px;
+    }
+
+    .episode-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-medium);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .episode-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+        }
+
+    .episode-video {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background: black;
+    }
+
+    .episode-content {
+        padding: 20px;
+    }
+
+    .episode-title {
+        font-size: 20px;
+        margin-bottom: 6px;
+    }
+
+    .episode-meta {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+    }
+
+    .episode-description {
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+
+    .episode-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .episode-btn {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .edit-btn {
+        background: var(--brand);
+        color: white;
+    }
+
+    .delete-btn {
+        border: 1px solid #ef4444;
+        color: #ef4444;
+    }
+
+</style>
+
+<div class="episodes-page">
+
+    <div class="episodes-header">
+
+        <div class="episodes-title">
+            <h1>Episodes</h1>
+            <p>Manage all episodes in the system.</p>
+        </div>
+
+        <a asp-action="Create" class="btn-submit">
+            + Add Episode
+        </a>
+
+    </div>
+
+    <div class="episodes-grid">
+
+        @foreach (var item in Model)
+        {
+            <div class="episode-card"
+                 onclick="window.location='@Url.Action("Details", "Episode", new { id = item.Id })'">
+
+                <video class="episode-video" controls>
+                    <source src="@item.VideoUrl" type="video/mp4" />
+                </video>
+
+                <div class="episode-content">
+
+                    <div class="episode-title">
+                        Episode @item.Number - @item.Name
+                    </div>
+
+                    <div class="episode-meta">
+                        Season ID: @item.SeasonId
+                    </div>
+
+                    <div class="episode-description">
+                        @item.Description
+                    </div>
+
+                    <div class="episode-actions">
+
+                        <a asp-action="Edit"
+                           asp-route-id="@item.Id"
+                           class="episode-btn edit-btn"
+                           onclick="event.stopPropagation();">
+                            Edit
+                        </a>
+
+                        <a asp-action="Delete"
+                           asp-route-id="@item.Id"
+                           class="episode-btn delete-btn"
+                           onclick="event.stopPropagation();">
+                            Delete
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
