@@ -1,21 +1,39 @@
 ﻿@page "/Account/Logout"
 @model LogoutModel
 @{
-    ViewData["Title"] = "Log out";
+    ViewData["Title"] = "Sign Out";
+    Layout = "/Views/Shared/_Layout.cshtml";
 }
 
-<header>
-    <h1>@ViewData["Title"]</h1>
-    @{
-        if (User.Identity?.IsAuthenticated ?? false)
+<div class="wi-auth-wrapper">
+    <div class="wi-auth-card text-center" style="max-width: 420px;">
+
+        <div class="mb-3" style="font-size: 3rem;">👋</div>
+        <h1 class="mb-2">Signed Out</h1>
+
+        @if (User.Identity?.IsAuthenticated ?? false)
         {
-            <form class="d-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
-                <button type="submit" class="nav-link btn btn-link text-dark">Click here to Logout</button>
+            <p style="color: var(--wi-muted);" class="mb-4">
+                You are still signed in. Click below to fully sign out.
+            </p>
+            <form class="d-inline"
+                  asp-area="Identity" asp-page="/Account/Logout"
+                  asp-route-returnUrl="@Url.Page("/", new { area = "" })"
+                  method="post">
+                <button type="submit" class="btn btn-wi-primary">
+                    Sign Out
+                </button>
             </form>
         }
         else
         {
-            <p>You have successfully logged out of the application.</p>
+            <p style="color: var(--wi-muted);" class="mb-4">
+                You have successfully signed out of WatchIt.
+            </p>
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-wi-primary">
+                Back to Home
+            </a>
         }
-    }
-</header>
+
+    </div>
+</div>
