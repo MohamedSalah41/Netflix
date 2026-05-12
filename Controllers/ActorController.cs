@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
 
 namespace Netflix_clone.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class ActorController : Controller
     {
         private readonly NetflixContext _netflixContext;
@@ -14,17 +16,20 @@ namespace Netflix_clone.Controllers
             _netflixContext = netflixContext;
         }
         // GET: ActorController
+        [AllowAnonymous]
         public ActionResult GetActorByName(string name)
         {
             return View(_netflixContext.Actors.FirstOrDefault(a => a.Name == name));
         }
 
         // GET: ActorController/Details/5
+        [AllowAnonymous]
         public ActionResult GetActorByID(int id)
         {
             return View(_netflixContext.Actors.FirstOrDefault(a => a.Id == id));
         }
 
+        [AllowAnonymous]
         public ActionResult GetAllActors()
         {
             return View(_netflixContext.Actors.ToList());
