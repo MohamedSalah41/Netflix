@@ -4,20 +4,31 @@
     ViewData["Title"] = "Access Denied";
 }
 
-<div class="d-flex flex-column align-items-center justify-content-center text-center"
-     style="min-height: 70vh; padding: 2rem;">
+<div class="d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 70vh;">
 
-    <div style="font-size: 5rem; line-height: 1; margin-bottom: 1rem;">🔒</div>
+    <!-- 
+        PASTE YOUR STORYSET SVG HERE:
+        1. Go to https://storyset.com/illustration/access-denied/cuate  (or search "access denied" on storyset.com)
+        2. Click "Download" → choose SVG
+        3. Replace this comment block with the <svg>...</svg> content
+    -->
+    <div style="max-width: 480px; width: 100%;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" style="width:100%">
+            <!-- placeholder: replace with Storyset SVG content -->
+            <text x="50%" y="40%" dominant-baseline="middle" text-anchor="middle"
+                  font-size="100" fill="#e50914" opacity="0.15">🔒</text>
+            <text x="50%" y="62%" dominant-baseline="middle" text-anchor="middle"
+                  font-size="22" fill="#555">Replace this with your Storyset SVG</text>
+        </svg>
+    </div>
 
-    <h1 class="fw-bold" style="font-size: 2.5rem; color: #fff;">Access Denied</h1>
-    <p style="color: var(--wi-muted); max-width: 400px; margin: 1rem auto 2rem;">
+    <h1 class="fw-bold mt-2" style="font-size: 2rem;">Access Denied</h1>
+    <p class="text-muted mt-2 mb-4" style="max-width: 400px;">
         You don't have permission to view this page.
         If you think this is a mistake, please contact support.
     </p>
 
-    <a asp-area="" asp-controller="Home" asp-action="Index"
-       class="btn btn-wi-primary px-5" style="width: auto; border-radius: 4px;">
-        Back to Home
+    <a asp-area="" asp-controller="Home" asp-action="Index" class="btn btn-danger btn-lg px-5 rounded-pill">
+        Go Back Home
     </a>
-
 </div>

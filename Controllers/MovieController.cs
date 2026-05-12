@@ -81,7 +81,7 @@ namespace Netflix_clone.Controllers
         // GET: MovieController/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            return View(context.Movies.FirstOrDefault(m=>m.Id==id));
         }
 
         // POST: MovieController/Delete/5
