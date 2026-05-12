@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Netflix_clone.Models;
+using Netflix_clone.ViewModels;
 
 namespace Netflix_clone.Controllers
 {
@@ -34,8 +35,12 @@ namespace Netflix_clone.Controllers
         // POST /Users/Edit/id
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, string email, string userName)
+        public async Task<IActionResult> Edit(EditViewModel editViewModel)
         {
+            string  id = editViewModel.Id.ToString();
+            string email = editViewModel.Email;
+            string userName = editViewModel.UserName;
+
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
