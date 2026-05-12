@@ -1,0 +1,292 @@
+﻿@* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  UpdateActor.cshtml  —  Edit form                                    ║
+   ║                                                                      ║
+   ║  IDENTICAL structure to AddActor.cshtml.                             ║
+   ║  HOW TO REUSE:                                                       ║
+   ║  1. CUSTOMISE-MODEL  → change model type                             ║
+   ║  2. CUSTOMISE-HEADING → title, subtitle, icon                        ║
+   ║  3. CUSTOMISE-FIELDS  → match AddActor fields (keep Id hidden)       ║
+   ║  4. CUSTOMISE-ACTIONS → asp-action and back link                     ║
+   ╚══════════════════════════════════════════════════════════════════════╝ *@
+
+@* ── CUSTOMISE-MODEL ── *@
+@model Netflix_clone.Models.Actor
+
+@{
+    @* ── CUSTOMISE-HEADING ── *@
+    ViewData["Title"] = "Edit Actor";
+    ViewBag.ActivePage = "Actors";
+
+    string formTitle    = "Edit Actor";
+    string formSubtitle = "Update the details below and save your changes.";
+    string formIcon     = "✏️";
+    string backAction   = "GetAllActors";   @* ── CUSTOMISE-ACTIONS ── *@
+    string backLabel    = "Back to Actors";
+}
+
+@* ── All styles are identical to AddActor — copy them from there.
+      Only the accent colour on the submit button changes to blue
+      to visually distinguish "edit" from "create". ── *@
+<style>
+    .form-page {
+        max-width   : 680px;
+        margin      : 40px auto;
+        padding     : 0 24px 64px;
+    }
+    .form-back {
+        display         : inline-flex;
+        align-items     : center;
+        gap             : 6px;
+        font-size       : 13px;
+        color           : var(--text-muted);
+        text-decoration : none;
+        margin-bottom   : 28px;
+        transition      : color 180ms;
+    }
+    .form-back:hover { color: var(--text-secondary); }
+    .form-card {
+        background      : var(--bg-surface);
+        border          : 1px solid var(--border-medium);
+        border-radius   : var(--radius-lg);
+        overflow        : hidden;
+    }
+    .form-card__header {
+        padding         : 28px 32px 24px;
+        border-bottom   : 1px solid var(--border-subtle);
+        display         : flex;
+        align-items     : center;
+        gap             : 16px;
+    }
+    /* Edit pages use a blue icon instead of red to signal "update" mode */
+    .form-card__icon {
+        width           : 48px;
+        height          : 48px;
+        border-radius   : 12px;
+        background      : rgba(96,165,250,0.1);
+        border          : 1px solid rgba(96,165,250,0.25);
+        display         : flex;
+        align-items     : center;
+        justify-content : center;
+        font-size       : 22px;
+        flex-shrink     : 0;
+    }
+    .form-card__title {
+        font-family     : var(--font-display);
+        font-size       : 26px;
+        letter-spacing  : 1px;
+        color           : var(--text-primary);
+        line-height     : 1;
+    }
+    .form-card__sub {
+        font-size       : 13px;
+        color           : var(--text-muted);
+        margin-top      : 5px;
+    }
+    .form-card__body { padding: 32px; }
+    .form-error-box {
+        background      : rgba(248,113,113,0.08);
+        border          : 1px solid rgba(248,113,113,0.3);
+        border-radius   : var(--radius-md);
+        padding         : 12px 16px;
+        margin-bottom   : 24px;
+        font-size       : 13px;
+        color           : #fca5a5;
+    }
+    .form-field { margin-bottom: 24px; }
+    .form-field:last-of-type { margin-bottom: 0; }
+    .form-label {
+        display         : block;
+        font-size       : 12px;
+        font-weight     : 600;
+        letter-spacing  : 0.06em;
+        text-transform  : uppercase;
+        color           : var(--text-secondary);
+        margin-bottom   : 8px;
+    }
+    .form-input {
+        width           : 100%;
+        padding         : 11px 16px;
+        background      : var(--bg-elevated);
+        border          : 1px solid var(--border-medium);
+        border-radius   : var(--radius-md);
+        color           : var(--text-primary);
+        font-family     : var(--font-body);
+        font-size       : 14px;
+        outline         : none;
+        transition      : border-color 200ms, box-shadow 200ms;
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-input:focus {
+        /* Blue focus ring for edit forms */
+        border-color    : #60a5fa;
+        box-shadow      : 0 0 0 3px rgba(96,165,250,0.15);
+    }
+    .form-field-error {
+        display         : block;
+        font-size       : 12px;
+        color           : #f87171;
+        margin-top      : 6px;
+    }
+    .photo-preview {
+        margin-top      : 12px;
+        width           : 72px;
+        height          : 72px;
+        border-radius   : var(--radius-md);
+        object-fit      : cover;
+        border          : 1px solid var(--border-medium);
+        display         : none;
+    }
+    .form-footer {
+        padding         : 24px 32px;
+        border-top      : 1px solid var(--border-subtle);
+        display         : flex;
+        align-items     : center;
+        justify-content : flex-end;
+        gap             : 12px;
+    }
+    .btn-ghost {
+        display         : inline-flex;
+        align-items     : center;
+        gap             : 6px;
+        padding         : 10px 20px;
+        border-radius   : var(--radius-full);
+        font-family     : var(--font-body);
+        font-size       : 13px;
+        font-weight     : 500;
+        color           : var(--text-secondary);
+        background      : transparent;
+        border          : 1px solid var(--border-medium);
+        text-decoration : none;
+        transition      : color 180ms, background 180ms;
+    }
+    .btn-ghost:hover { color: var(--text-primary); background: var(--bg-elevated); }
+
+    /* Blue submit for edit (vs red for create) */
+    .btn-submit {
+        display         : inline-flex;
+        align-items     : center;
+        gap             : 8px;
+        padding         : 10px 24px;
+        background      : #2563eb;
+        color           : #fff;
+        font-family     : var(--font-body);
+        font-size       : 13px;
+        font-weight     : 600;
+        border-radius   : var(--radius-full);
+        border          : none;
+        cursor          : pointer;
+        transition      : background 200ms, box-shadow 200ms, transform 150ms;
+    }
+    .btn-submit:hover {
+        background      : #3b82f6;
+        box-shadow      : 0 0 20px rgba(59,130,246,0.3);
+        transform       : translateY(-1px);
+    }
+    .btn-submit:active { transform: translateY(0); }
+
+    @@media (max-width: 600px) {
+        .form-page { padding: 0 12px 48px; margin-top: 24px; }
+        .form-card__header, .form-card__body, .form-footer { padding: 20px; }
+        .form-footer { flex-direction: column-reverse; }
+        .btn-ghost, .btn-submit { width: 100%; justify-content: center; }
+    }
+</style>
+
+<div class="form-page">
+
+    <a asp-action="@backAction" class="form-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        @backLabel
+    </a>
+
+    <div class="form-card">
+
+        <div class="form-card__header">
+            <div class="form-card__icon" aria-hidden="true">@formIcon</div>
+            <div>
+                <div class="form-card__title">@formTitle</div>
+                @* Show the actor's name in the subtitle when editing *@
+                <div class="form-card__sub">@formSubtitle — <strong style="color:var(--text-secondary)">@Model?.Name</strong></div>
+            </div>
+        </div>
+
+        @* ── CUSTOMISE-ACTIONS: change asp-action ── *@
+        <form asp-action="UpdateActor" id="mainForm" novalidate>
+            <div asp-validation-summary="ModelOnly" class="form-error-box text-danger"></div>
+
+            <div class="form-card__body">
+
+                @* Hidden Id field — REQUIRED for update so the server knows which record to save *@
+                <input type="hidden" asp-for="Id" />
+
+                @* ── CUSTOMISE-FIELDS: mirror exactly from AddActor ── *@
+
+                <div class="form-field">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-input" placeholder="e.g. Leonardo DiCaprio" />
+                    <span asp-validation-for="Name" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Bio" class="form-label"></label>
+                    <input asp-for="Bio" class="form-input"
+                           placeholder="Short biography or description…" />
+                    <span asp-validation-for="Bio" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Photo" class="form-label"></label>
+                    <input asp-for="Photo" class="form-input" id="photoInput"
+                           placeholder="https://example.com/actor.jpg" />
+                    <span asp-validation-for="Photo" class="form-field-error"></span>
+                    <img id="photoPreview" class="photo-preview" alt="Photo preview" />
+                </div>
+
+            </div>
+
+            <div class="form-footer">
+                <a asp-action="@backAction" class="btn-ghost">Cancel</a>
+                <button type="submit" class="btn-submit">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Save Changes
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+
+    <script>
+    // Show existing photo on page load, then update preview as user types
+    (function () {
+        const input   = document.getElementById('photoInput');
+        const preview = document.getElementById('photoPreview');
+        if (!input || !preview) return;
+
+        function tryLoad(url) {
+            if (!url) { preview.style.display = 'none'; return; }
+            preview.src = url;
+            preview.onload  = function () { preview.style.display = 'block'; };
+            preview.onerror = function () { preview.style.display = 'none';  };
+        }
+
+        // Show preview immediately for the existing value
+        tryLoad(input.value.trim());
+
+        let timer;
+        input.addEventListener('input', function () {
+            clearTimeout(timer);
+            timer = setTimeout(function () { tryLoad(input.value.trim()); }, 500);
+        });
+    })();
+    </script>
+}
