@@ -1,60 +1,150 @@
 ﻿@model IEnumerable<Netflix_clone.Models.Series>
 
 @{
-    ViewData["Title"] = "GetAllSeries";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Series";
+    ViewBag.ActivePage = "Series";
 }
 
-<h1>GetAllSeries</h1>
+<style>
 
-<p>
-    <a asp-action="AddSeries">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.TrailerUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Poster)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Rating)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.TrailerUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Poster)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Rating)
-            </td>
-            <td>
-                <a asp-action="UpdateSeries" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="GetSeriesById" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="DeleteSeries" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    .series-page {
+        padding: 40px;
+    }
+
+    .series-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+    }
+
+    .series-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+        gap: 24px;
+    }
+
+    .series-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-medium);
+        border-radius: 24px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+        .series-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0,0,0,.3);
+        }
+
+    .series-poster {
+        width: 100%;
+        height: 380px;
+        object-fit: cover;
+    }
+
+    .series-content {
+        padding: 20px;
+    }
+
+    .series-name {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .series-description {
+        color: var(--text-muted);
+        font-size: 14px;
+        line-height: 1.7;
+        margin-bottom: 18px;
+    }
+
+    .series-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .series-btn {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .edit-btn {
+        background: var(--brand);
+        color: white;
+    }
+
+    .delete-btn {
+        border: 1px solid #ef4444;
+        color: #ef4444;
+    }
+
+</style>
+
+<div class="series-page">
+
+    <div class="series-header">
+
+        <div>
+            <h1>Series</h1>
+            <p>Manage all series in the system.</p>
+        </div>
+
+        <a asp-action="AddSeries" class="btn-submit">
+            + Add Series
+        </a>
+
+    </div>
+
+    <div class="series-grid">
+
+        @foreach (var item in Model)
+        {
+            <div class="series-card"
+                 onclick="window.location='@Url.Action("GetSeriesById", "Series", new { id = item.Id })'">
+
+                <img src="@item.Poster" class="series-poster" />
+
+                <div class="series-content">
+
+                    <div class="series-name">
+                        @item.Name
+                    </div>
+
+                    <div class="series-description">
+                        @item.Description
+                    </div>
+
+                    <div class="series-actions">
+
+                        <a asp-action="UpdateSeries"
+                           asp-route-id="@item.Id"
+                           class="series-btn edit-btn"
+                           onclick="event.stopPropagation();">
+                            Edit
+                        </a>
+
+                        <a asp-action="DeleteSeries"
+                           asp-route-id="@item.Id"
+                           class="series-btn delete-btn"
+                           onclick="event.stopPropagation();">
+                            Delete
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
