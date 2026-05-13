@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Add Season";
     ViewBag.ActivePage = "Seasons";
+    var series= new SelectList(ViewBag.SeriesList, "Id", "Name");
 }
 
 <style>
@@ -200,9 +201,23 @@
                 </div>
 
                 <div class="form-field">
+
                     <label asp-for="SeriesId" class="form-label"></label>
-                    <input asp-for="SeriesId" class="form-input" type="number" placeholder="Series ID (optional)" />
-                    <span asp-validation-for="SeriesId" class="form-field-error"></span>
+
+                    <select asp-for="SeriesId"
+                            class="form-input"
+                            asp-items="@(new SelectList(ViewBag.SeriesList, "Id", "Name"))">
+
+                        <option value="">
+                            -- Select Series --
+                        </option>
+
+                    </select>
+
+                    <span asp-validation-for="SeriesId"
+                          class="form-field-error">
+                    </span>
+
                 </div>
 
                 <div class="form-field">

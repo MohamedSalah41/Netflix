@@ -1,49 +1,116 @@
 ﻿@model Netflix_clone.Models.Series
 
 @{
-    ViewData["Title"] = "AddSeries";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Add Series";
+    ViewBag.ActivePage = "Series";
 }
 
-<h1>AddSeries</h1>
+<partial name="_MovieFormStyle" />
 
-<h4>Series</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+<div class="form-page">
+
+    <div class="form-card">
+
+        <div class="form-card__header">
+
+            <div class="form-card__icon">📺</div>
+
+            <div>
+                <div class="form-card__title">Add Series</div>
+                <div class="form-card__sub">
+                    Add a new series to the platform.
+                </div>
+            </div>
+
+        </div>
+
         <form asp-action="AddSeries">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="TrailerUrl" class="control-label"></label>
-                <input asp-for="TrailerUrl" class="form-control" />
-                <span asp-validation-for="TrailerUrl" class="text-danger"></span>
+
+            <div class="form-card__body">
+
+                <div class="form-field">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-input" />
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-input"></textarea>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Poster" class="form-label"></label>
+                    <input asp-for="Poster" class="form-input" />
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="TrailerUrl" class="form-label"></label>
+                    <input asp-for="TrailerUrl" class="form-input" />
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Rating" class="form-label"></label>
+                    <input asp-for="Rating" class="form-input" />
+                </div>
+                <div class="form-field">
+
+                    <label class="form-label">
+                        Actors
+                    </label>
+
+                    <select name="actorIds"
+                            class="form-input"
+                            multiple
+                            style="height:220px;">
+
+                        @foreach (var actor in ViewBag.Actors)
+                        {
+                            <option value="@actor.Id">
+                                @actor.Name
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+                <div class="form-field">
+
+                    <label class="form-label">
+                        Categories
+                    </label>
+
+                    <select name="categoryIds"
+                            class="form-input"
+                            multiple
+                            style="height:220px;">
+
+                        @foreach (var category in ViewBag.Categories)
+                        {
+                            <option value="@category.Id">
+                                @category.Name
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
             </div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+
+            <div class="form-footer">
+
+                <a asp-action="GetAllSeries" class="btn-ghost">
+                    Cancel
+                </a>
+
+                <button type="submit" class="btn-submit">
+                    Save Series
+                </button>
+
             </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Poster" class="control-label"></label>
-                <input asp-for="Poster" class="form-control" />
-                <span asp-validation-for="Poster" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
+
         </form>
+
     </div>
-</div>
 
-<div>
-    <a asp-action="GetAllSeries">Back to List</a>
 </div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}

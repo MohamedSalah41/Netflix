@@ -7,10 +7,12 @@ namespace Netflix_clone.Controllers;
 public class SeasonController : Controller
 {
     private readonly ISeasonRepository _seasonRepo;
+    private readonly NetflixContext context;
 
-    public SeasonController(ISeasonRepository seasonRepo)
+    public SeasonController(ISeasonRepository seasonRepo,NetflixContext context)
     {
         _seasonRepo = seasonRepo;
+        this.context = context;
     }
 
     public IActionResult GetAllSeasons()
@@ -27,6 +29,7 @@ public class SeasonController : Controller
 
     public IActionResult AddSeason()
     {
+        ViewBag.SeriesList = context.Series.ToList();
         return View();
     }
 
@@ -35,6 +38,7 @@ public class SeasonController : Controller
     public IActionResult AddSeason(Season season)
     {
         if (!ModelState.IsValid) return View(season);
+        ViewBag.SeriesList = context.Series.ToList();
         _seasonRepo.Add(season);
         _seasonRepo.Save();
         return RedirectToAction(nameof(GetAllSeasons));
@@ -43,6 +47,7 @@ public class SeasonController : Controller
     public IActionResult UpdateSeason(int id)
     {
         var season = _seasonRepo.GetById(id);
+        ViewBag.SeriesList = context.Series.ToList();
         if (season is null) return NotFound();
         return View(season);
     }
@@ -52,6 +57,7 @@ public class SeasonController : Controller
     public IActionResult UpdateSeason(int id, Season season)
     {
         if (!ModelState.IsValid) return View(season);
+        ViewBag.SeriesList = context.Series.ToList();
         _seasonRepo.Update(season);
         _seasonRepo.Save();
         return RedirectToAction(nameof(GetAllSeasons));

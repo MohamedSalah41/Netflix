@@ -1,0 +1,131 @@
+﻿@model Netflix_clone.Models.Series
+
+@{
+    ViewData["Title"] = "Delete Series";
+    ViewBag.ActivePage = "Series";
+
+    string formTitle = "Delete Series";
+    string formSubtitle = "This action cannot be undone.";
+    string formIcon = "🗑️";
+    string backAction = "GetAllSeries";
+    string backLabel = "Back to Series";
+}
+
+<partial name="_MovieFormStyle" />
+
+<div class="form-page">
+
+    <!-- Back Button -->
+    <a asp-action="@backAction" class="form-back">
+        ← @backLabel
+    </a>
+
+    <div class="form-card">
+
+        <!-- Header -->
+        <div class="form-card__header">
+
+            <div class="form-card__icon">
+                @formIcon
+            </div>
+
+            <div>
+                <div class="form-card__title">
+                    @formTitle
+                </div>
+
+                <div class="form-card__sub">
+                    @formSubtitle
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Body -->
+        <div class="form-card__body">
+
+            <!-- Poster -->
+            <div style="text-align:center; margin-bottom:30px;">
+
+                <img src="@Model.Poster"
+                     alt="@Model.Name"
+                     style="
+                        width:220px;
+                        border-radius:20px;
+                        border:1px solid var(--border-medium);
+                        box-shadow:0 10px 25px rgba(0,0,0,.35);
+                     " />
+
+            </div>
+
+            <!-- Info -->
+            <div class="form-field">
+
+                <label class="form-label">
+                    Series Name
+                </label>
+
+                <div class="form-input">
+                    @Model.Name
+                </div>
+
+            </div>
+
+            <div class="form-field">
+
+                <label class="form-label">
+                    Description
+                </label>
+
+                <div class="form-input"
+                     style="
+                        min-height:120px;
+                        line-height:1.8;
+                     ">
+                    @Model.Description
+                </div>
+
+            </div>
+
+            <div class="form-field">
+
+                <label class="form-label">
+                    Rating
+                </label>
+
+                <div class="form-input">
+                    ⭐ @Model.Rating
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="form-footer">
+
+            <a asp-action="@backAction"
+               class="btn-ghost">
+                Cancel
+            </a>
+
+            <form asp-action="DeleteSeries">
+
+                <input type="hidden"
+                       asp-for="Id" />
+
+                <button type="submit"
+                        class="btn-submit"
+                        style="
+                            background:#dc2626;
+                        ">
+                    Delete Series
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

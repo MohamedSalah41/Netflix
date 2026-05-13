@@ -6,7 +6,7 @@ using Netflix_clone.Models;
 
 namespace Netflix_clone.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public class ActorController : Controller
     {
         private readonly NetflixContext _netflixContext;
