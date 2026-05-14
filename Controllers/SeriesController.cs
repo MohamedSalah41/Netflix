@@ -25,6 +25,7 @@ namespace Netflix_clone.Controllers
         {
             var series = _netflixContext.Series
                 .Include(s => s.Seasons)
+                    .ThenInclude(s => s.Episodes)
                 .Include(s => s.Actors)
                 .Include(s => s.Categories)
                 .FirstOrDefault(s => s.Id == id);

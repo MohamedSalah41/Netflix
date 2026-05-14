@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
 
 namespace Netflix_clone.Controllers
@@ -12,9 +13,24 @@ namespace Netflix_clone.Controllers
         {
             this.context = context;
         }
-        // GET: EpisodeController
-        public ActionResult GetAllEpisodes()
+        public ActionResult GetAllEpisodes(int? seasonId = null)
         {
+            if (seasonId.HasValue)
+            {
+                var episodes = context.Episodes
+                    .Include(e => e.Season)
+                    .Where(e => e.SeasonId == seasonId.Value)
+                    .OrderBy(e => e.Number)
+                    .ToList();
+
+                var season = context.Seasons
+                    .Include(s => s.Series)
+                    .FirstOrDefault(s => s.Id == seasonId.Value);
+
+                ViewBag.Season = season;
+                return View(episodes);
+            }
+
             return View(context.Episodes.ToList());
         }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
 
 namespace Netflix_clone.Controllers
@@ -21,8 +22,11 @@ namespace Netflix_clone.Controllers
         // GET: MovieController/Details/5
         public ActionResult Details(int id)
         {
-            
-            return View(context.Movies.FirstOrDefault(m => m.Id == id));
+            var movie = context.Movies
+                .Include(m => m.Actors)
+                .Include(m => m.Categories)
+                .FirstOrDefault(m => m.Id == id);
+            return View(movie);
         }
 
         // GET: MovieController/Create
