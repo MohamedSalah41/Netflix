@@ -18,6 +18,15 @@ builder.Services.AddIdentity<AppUser,IdentityRole>(options => options.SignIn.Req
     .AddDefaultTokenProviders()
     .AddDefaultUI();
 
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]
+            ?? throw new InvalidOperationException("Authentication:Google:ClientId is not configured.");
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]
+            ?? throw new InvalidOperationException("Authentication:Google:ClientSecret is not configured.");
+    });
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
