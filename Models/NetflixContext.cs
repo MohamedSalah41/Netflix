@@ -18,6 +18,7 @@ namespace Netflix_clone.Models
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<Profile> Profiles => Set<Profile>();
         public DbSet<WatchHistory> WatchHistory => Set<WatchHistory>();
+        public DbSet<MyListItem> MyListItems => Set<MyListItem>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -318,6 +319,20 @@ namespace Netflix_clone.Models
                 // since Movie and Episode live in separate tables.
                 entity.Property(w => w.MediaItemId)
                       .IsRequired(false);
+            });
+
+            modelBuilder.Entity<MyListItem>(entity =>
+            {
+                entity.ToTable("MyListItems");
+                entity.HasKey(m => m.Id);
+                entity.Property(m => m.AppUserId).IsRequired();
+                entity.Property(m => m.MediaType).HasMaxLength(20).IsRequired();
+                entity.Property(m => m.MediaName).HasMaxLength(256).IsRequired();
+                entity.Property(m => m.MediaPoster).HasMaxLength(512);
+                entity.HasOne(m => m.AppUser)
+                      .WithMany()
+                      .HasForeignKey(m => m.AppUserId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

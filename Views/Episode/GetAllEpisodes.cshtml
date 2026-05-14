@@ -105,6 +105,27 @@
 
 <div class="episodes-page">
 
+    @if (ViewBag.Season != null)
+    {
+        var season = ViewBag.Season as Netflix_clone.Models.Season;
+        <div style="margin-bottom:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            @if (season?.Series != null)
+            {
+                <a asp-controller="Series" asp-action="GetSeriesById" asp-route-id="@season.Series.Id"
+                   style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);text-decoration:none;transition:color 180ms;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                    @season.Series.Name
+                </a>
+                <span style="color:var(--text-muted);font-size:13px;">/</span>
+            }
+            <span style="font-size:13px;color:var(--text-secondary);font-weight:600;">
+                Season @season?.Number — @season?.Name
+            </span>
+        </div>
+    }
+
     <div class="episodes-header">
 
         <div class="episodes-title">

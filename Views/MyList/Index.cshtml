@@ -1,0 +1,282 @@
+@model IEnumerable<Netflix_clone.Models.MyListItem>
+@{
+    ViewData["Title"] = "My List";
+    ViewBag.ActivePage = "MyList";
+}
+
+<style>
+    .mylist-page { padding: 48px 64px 80px; }
+
+    .mylist-hero {
+        margin-bottom : 40px;
+        display       : flex;
+        align-items   : center;
+        justify-content: space-between;
+        flex-wrap     : wrap;
+        gap           : 16px;
+    }
+    .mylist-hero__title {
+        font-family   : var(--font-display);
+        font-size     : 42px;
+        letter-spacing: 2px;
+        color         : var(--text-primary);
+    }
+    .mylist-hero__sub {
+        font-size  : 14px;
+        color      : var(--text-muted);
+        margin-top : 6px;
+    }
+    .mylist-count {
+        display      : inline-flex;
+        align-items  : center;
+        gap          : 6px;
+        background   : var(--brand-dim);
+        border       : 1px solid rgba(229,9,20,0.3);
+        border-radius: var(--radius-full);
+        padding      : 6px 16px;
+        font-size    : 13px;
+        font-weight  : 700;
+        color        : var(--brand);
+    }
+
+    .mylist-grid {
+        display              : grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap                  : 20px;
+    }
+
+    .mylist-card {
+        background    : var(--bg-surface);
+        border        : 1px solid var(--border-subtle);
+        border-radius : var(--radius-lg);
+        overflow      : hidden;
+        transition    : transform 220ms var(--ease-spring), border-color 180ms, box-shadow 180ms;
+        position      : relative;
+    }
+    .mylist-card:hover {
+        transform   : translateY(-6px);
+        border-color: var(--border-medium);
+        box-shadow  : var(--shadow-md);
+    }
+    .mylist-card__poster {
+        width       : 100%;
+        aspect-ratio: 2/3;
+        object-fit  : cover;
+        background  : var(--bg-elevated);
+        display     : block;
+    }
+    .mylist-card__placeholder {
+        width           : 100%;
+        aspect-ratio    : 2/3;
+        background      : linear-gradient(135deg, var(--bg-elevated), var(--bg-surface));
+        display         : flex;
+        flex-direction  : column;
+        align-items     : center;
+        justify-content : center;
+        gap             : 8px;
+        font-size       : 32px;
+        color           : var(--text-muted);
+    }
+    .mylist-card__placeholder span {
+        font-size  : 12px;
+        color      : var(--text-secondary);
+        font-weight: 600;
+        text-align : center;
+        padding    : 0 12px;
+    }
+    .mylist-card__body { padding: 14px; }
+    .mylist-card__type {
+        font-size     : 10px;
+        font-weight   : 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color         : var(--brand);
+        margin-bottom : 4px;
+    }
+    .mylist-card__name {
+        font-size  : 14px;
+        font-weight: 600;
+        color      : var(--text-primary);
+        overflow   : hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+    .mylist-card__date {
+        font-size : 11px;
+        color     : var(--text-muted);
+        margin-top: 4px;
+    }
+    .mylist-card__actions {
+        display        : flex;
+        gap            : 8px;
+        margin-top     : 12px;
+    }
+    .mylist-card__btn {
+        flex           : 1;
+        display        : inline-flex;
+        align-items    : center;
+        justify-content: center;
+        gap            : 5px;
+        padding        : 7px 0;
+        border-radius  : var(--radius-full);
+        font-size      : 12px;
+        font-weight    : 600;
+        text-decoration: none;
+        transition     : background 180ms, color 180ms;
+    }
+    .mylist-card__btn--view {
+        background: var(--brand);
+        color     : #fff;
+    }
+    .mylist-card__btn--view:hover { background: var(--brand-hover); color: #fff; }
+    .mylist-card__btn--remove {
+        background  : transparent;
+        color       : #f87171;
+        border      : 1px solid rgba(248,113,113,0.25);
+    }
+    .mylist-card__btn--remove:hover {
+        background  : rgba(248,113,113,0.1);
+        border-color: rgba(248,113,113,0.4);
+    }
+
+    .mylist-empty {
+        grid-column : 1 / -1;
+        padding     : 80px 0;
+        text-align  : center;
+        color       : var(--text-muted);
+    }
+    .mylist-empty__icon { font-size: 56px; margin-bottom: 16px; }
+    .mylist-empty__text { font-size: 16px; margin-bottom: 24px; }
+    .mylist-empty__link {
+        display        : inline-flex;
+        align-items    : center;
+        gap            : 8px;
+        padding        : 12px 28px;
+        background     : var(--brand);
+        color          : #fff;
+        border-radius  : var(--radius-full);
+        font-size      : 14px;
+        font-weight    : 700;
+        text-decoration: none;
+        transition     : background 200ms, transform 150ms;
+    }
+    .mylist-empty__link:hover {
+        background: var(--brand-hover);
+        transform : translateY(-2px);
+        color     : #fff;
+    }
+
+    @@media (max-width: 768px) {
+        .mylist-page { padding: 32px 24px 60px; }
+        .mylist-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    }
+</style>
+
+<div class="mylist-page">
+
+    <div class="mylist-hero">
+        <div>
+            <div class="mylist-hero__title">My List</div>
+            <div class="mylist-hero__sub">Everything you've saved to watch later.</div>
+        </div>
+        @if (Model.Any())
+        {
+            <div class="mylist-count">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                @Model.Count() item@(Model.Count() != 1 ? "s" : "")
+            </div>
+        }
+    </div>
+
+    <div class="mylist-grid">
+        @if (!Model.Any())
+        {
+            <div class="mylist-empty">
+                <div class="mylist-empty__icon">🎬</div>
+                <div class="mylist-empty__text">Your list is empty. Start adding movies and series!</div>
+                <a asp-controller="Home" asp-action="Index" class="mylist-empty__link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    Browse Content
+                </a>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                string viewController = item.MediaType == "Movie" ? "Movie" : "Series";
+                string viewAction     = item.MediaType == "Movie" ? "Details" : "GetSeriesById";
+
+                <div class="mylist-card" id="card-@item.Id">
+                    @if (!string.IsNullOrWhiteSpace(item.MediaPoster))
+                    {
+                        <img class="mylist-card__poster" src="@item.MediaPoster" alt="@item.MediaName"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+                        <div class="mylist-card__placeholder" style="display:none">
+                            🎬<span>@item.MediaName</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mylist-card__placeholder">🎬<span>@item.MediaName</span></div>
+                    }
+                    <div class="mylist-card__body">
+                        <div class="mylist-card__type">@item.MediaType</div>
+                        <div class="mylist-card__name" title="@item.MediaName">@item.MediaName</div>
+                        <div class="mylist-card__date">Added @item.AddedUtc.ToString("MMM d, yyyy")</div>
+                        <div class="mylist-card__actions">
+                            <a asp-controller="@viewController" asp-action="@viewAction"
+                               asp-route-id="@item.MediaId"
+                               class="mylist-card__btn mylist-card__btn--view">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="5 3 19 12 5 21 5 3"/>
+                                </svg>
+                                Watch
+                            </a>
+                            <button class="mylist-card__btn mylist-card__btn--remove"
+                                    onclick="removeItem(@item.Id, @item.MediaId, '@item.MediaType')">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function removeItem(listItemId, mediaId, mediaType) {
+    const fd = new FormData();
+    fd.append('mediaId',   mediaId);
+    fd.append('mediaType', mediaType);
+    fd.append('mediaName', '');
+    fd.append('__RequestVerificationToken',
+        document.querySelector('input[name="__RequestVerificationToken"]')?.value || '');
+
+    fetch('/MyList/Toggle', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(d => {
+            if (!d.inList) {
+                const card = document.getElementById('card-' + listItemId);
+                if (card) {
+                    card.style.transition = 'opacity 300ms, transform 300ms';
+                    card.style.opacity    = '0';
+                    card.style.transform  = 'scale(0.9)';
+                    setTimeout(() => card.remove(), 300);
+                }
+            }
+        });
+}
+</script>
+@Html.AntiForgeryToken()
+}
