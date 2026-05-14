@@ -170,7 +170,7 @@ namespace Netflix_clone.Migrations
 
                     b.HasIndex("MovieId");
 
-                    b.ToTable("MovieActors");
+                    b.ToTable("MovieActors", (string)null);
                 });
 
             modelBuilder.Entity("MovieCategories", b =>
@@ -185,7 +185,7 @@ namespace Netflix_clone.Migrations
 
                     b.HasIndex("MovieId");
 
-                    b.ToTable("MovieCategories");
+                    b.ToTable("MovieCategories", (string)null);
                 });
 
             modelBuilder.Entity("Netflix_clone.Models.Actor", b =>
@@ -333,45 +333,6 @@ namespace Netflix_clone.Migrations
                     b.ToTable("Categories", (string)null);
                 });
 
-            modelBuilder.Entity("Netflix_clone.Models.MyListItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AddedUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("AppUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("MediaId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MediaName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("MediaPoster")
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.Property<string>("MediaType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AppUserId");
-
-                    b.ToTable("MyListItems", (string)null);
-                });
-
             modelBuilder.Entity("Netflix_clone.Models.Profile", b =>
                 {
                     b.Property<int>("Id")
@@ -476,7 +437,7 @@ namespace Netflix_clone.Migrations
 
                     b.HasIndex("SeriesId");
 
-                    b.ToTable("SeriesActors");
+                    b.ToTable("SeriesActors", (string)null);
                 });
 
             modelBuilder.Entity("SeriesCategories", b =>
@@ -491,7 +452,7 @@ namespace Netflix_clone.Migrations
 
                     b.HasIndex("SeriesId");
 
-                    b.ToTable("SeriesCategories");
+                    b.ToTable("SeriesCategories", (string)null);
                 });
 
             modelBuilder.Entity("SeriesOfMoviesActors", b =>
@@ -506,7 +467,7 @@ namespace Netflix_clone.Migrations
 
                     b.HasIndex("SeriesOfMoviesId");
 
-                    b.ToTable("SeriesOfMoviesActors");
+                    b.ToTable("SeriesOfMoviesActors", (string)null);
                 });
 
             modelBuilder.Entity("SeriesOfMoviesCategories", b =>
@@ -521,7 +482,7 @@ namespace Netflix_clone.Migrations
 
                     b.HasIndex("SeriesOfMoviesId");
 
-                    b.ToTable("SeriesOfMoviesCategories");
+                    b.ToTable("SeriesOfMoviesCategories", (string)null);
                 });
 
             modelBuilder.Entity("Netflix_clone.Models.GeneralSeries", b =>
@@ -590,6 +551,90 @@ namespace Netflix_clone.Migrations
                     b.HasIndex("SeriesOfMoviesId");
 
                     b.ToTable("Movies", (string)null);
+                });
+
+            modelBuilder.Entity("Netflix_clone.Models.MyListItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("MediaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MediaName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("MediaPoster")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("MediaType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppUserId");
+
+                    b.ToTable("MyListItems", (string)null);
+                });
+
+            modelBuilder.Entity("Netflix_clone.Models.Subscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Plan")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StripeCustomerId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("StripeSubscriptionId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppUserId")
+                        .IsUnique();
+
+                    b.ToTable("Subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -671,17 +716,6 @@ namespace Netflix_clone.Migrations
                         .HasForeignKey("MovieId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Netflix_clone.Models.MyListItem", b =>
-                {
-                    b.HasOne("Netflix_clone.Models.AppUser", "AppUser")
-                        .WithMany()
-                        .HasForeignKey("AppUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AppUser");
                 });
 
             modelBuilder.Entity("Netflix_clone.Models.Profile", b =>
@@ -794,9 +828,33 @@ namespace Netflix_clone.Migrations
                     b.Navigation("SeriesOfMovies");
                 });
 
+            modelBuilder.Entity("Netflix_clone.Models.MyListItem", b =>
+                {
+                    b.HasOne("Netflix_clone.Models.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
+            modelBuilder.Entity("Netflix_clone.Models.Subscription", b =>
+                {
+                    b.HasOne("Netflix_clone.Models.AppUser", "AppUser")
+                        .WithOne("Subscription")
+                        .HasForeignKey("Netflix_clone.Models.Subscription", "AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
             modelBuilder.Entity("Netflix_clone.Models.AppUser", b =>
                 {
                     b.Navigation("Profiles");
+
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("Netflix_clone.Models.Profile", b =>

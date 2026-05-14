@@ -1,0 +1,366 @@
+@{
+    ViewData["Title"] = "Choose Your Plan";
+}
+
+<style>
+    .plans-page {
+        min-height: calc(100vh - var(--navbar-h));
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 24px;
+    }
+
+    .plans-header {
+        text-align: center;
+        margin-bottom: 48px;
+    }
+
+    .plans-header__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--brand-dim);
+        border: 1px solid rgba(229,9,20,0.35);
+        border-radius: var(--radius-full);
+        padding: 4px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--brand);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+    }
+
+    .plans-header__title {
+        font-family: var(--font-display);
+        font-size: clamp(32px, 5vw, 56px);
+        letter-spacing: 2px;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+    }
+
+    .plans-header__sub {
+        font-size: 16px;
+        color: var(--text-secondary);
+        max-width: 480px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+        width: 100%;
+        max-width: 900px;
+    }
+
+    .plan-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-medium);
+        border-radius: var(--radius-lg);
+        padding: 32px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        transition: border-color 220ms, transform 220ms, box-shadow 220ms;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .plan-card:hover {
+        border-color: rgba(229,9,20,0.5);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .plan-card--featured {
+        border-color: var(--brand);
+        box-shadow: 0 0 0 1px var(--brand), var(--shadow-brand);
+    }
+
+    .plan-card__badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: var(--brand);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: var(--radius-full);
+    }
+
+    .plan-card__icon {
+        font-size: 32px;
+        line-height: 1;
+    }
+
+    .plan-card__name {
+        font-family: var(--font-display);
+        font-size: 28px;
+        letter-spacing: 1px;
+        color: var(--text-primary);
+    }
+
+    .plan-card__price {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+    }
+
+    .plan-card__amount {
+        font-size: 40px;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    .plan-card__currency {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        align-self: flex-start;
+        margin-top: 6px;
+    }
+
+    .plan-card__period {
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+
+    .plan-card__features {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex: 1;
+    }
+
+    .plan-card__feature {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .plan-card__feature-icon {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(16,185,129,0.15);
+        color: #10b981;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .plan-card__btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 13px 24px;
+        border-radius: var(--radius-full);
+        font-size: 14px;
+        font-weight: 700;
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+        border: 1px solid var(--border-medium);
+        cursor: pointer;
+        transition: background 200ms, border-color 200ms, transform 150ms;
+        width: 100%;
+        font-family: var(--font-body);
+    }
+
+    .plan-card__btn:hover {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .plan-card--featured .plan-card__btn {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+    }
+
+    .plan-card--featured .plan-card__btn:hover {
+        background: var(--brand-hover);
+    }
+
+    .plans-footer {
+        margin-top: 40px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--text-muted);
+        max-width: 500px;
+    }
+
+    .plans-footer a {
+        color: var(--brand);
+    }
+
+    @@media (max-width: 640px) {
+        .plans-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="plans-page">
+    <div class="plans-header">
+        <div class="plans-header__eyebrow">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            Subscription
+        </div>
+        <h1 class="plans-header__title">Choose Your Plan</h1>
+        <p class="plans-header__sub">Unlimited movies and series. Cancel anytime.</p>
+    </div>
+
+    <div class="plans-grid">
+        <div class="plan-card">
+            <div class="plan-card__icon">📺</div>
+            <div class="plan-card__name">Basic</div>
+            <div class="plan-card__price">
+                <span class="plan-card__currency">$</span>
+                <span class="plan-card__amount">7.99</span>
+                <span class="plan-card__period">/month</span>
+            </div>
+            <ul class="plan-card__features">
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    HD streaming
+                </li>
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    1 screen at a time
+                </li>
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    Watch on any device
+                </li>
+            </ul>
+            <form asp-action="CreateCheckoutSession" asp-controller="Payment" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="planKey" value="basic" />
+                <button type="submit" class="plan-card__btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    Get Basic
+                </button>
+            </form>
+        </div>
+
+        <div class="plan-card plan-card--featured">
+            <div class="plan-card__badge">Most Popular</div>
+            <div class="plan-card__icon">🎬</div>
+            <div class="plan-card__name">Standard</div>
+            <div class="plan-card__price">
+                <span class="plan-card__currency">$</span>
+                <span class="plan-card__amount">12.99</span>
+                <span class="plan-card__period">/month</span>
+            </div>
+            <ul class="plan-card__features">
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    Full HD streaming
+                </li>
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    2 screens at a time
+                </li>
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    Watch on any device
+                </li>
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    Download on 2 devices
+                </li>
+            </ul>
+            <form asp-action="CreateCheckoutSession" asp-controller="Payment" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="planKey" value="standard" />
+                <button type="submit" class="plan-card__btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    Get Standard
+                </button>
+            </form>
+        </div>
+
+        <div class="plan-card">
+            <div class="plan-card__icon">✨</div>
+            <div class="plan-card__name">Premium</div>
+            <div class="plan-card__price">
+                <span class="plan-card__currency">$</span>
+                <span class="plan-card__amount">17.99</span>
+                <span class="plan-card__period">/month</span>
+            </div>
+            <ul class="plan-card__features">
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    4K + HDR streaming
+                </li>
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    4 screens at a time
+                </li>
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    Watch on any device
+                </li>
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    Download on 6 devices
+                </li>
+                <li class="plan-card__feature">
+                    <span class="plan-card__feature-icon">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    Spatial audio
+                </li>
+            </ul>
+            <form asp-action="CreateCheckoutSession" asp-controller="Payment" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="planKey" value="premium" />
+                <button type="submit" class="plan-card__btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    Get Premium
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <p class="plans-footer">
+        Secure payment powered by Stripe. Cancel anytime from your account settings.
+        By subscribing you agree to our <a href="#">Terms of Service</a>.
+    </p>
+</div>

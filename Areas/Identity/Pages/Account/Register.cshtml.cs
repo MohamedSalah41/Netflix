@@ -147,7 +147,7 @@ namespace Netflix_clone.Areas.Identity.Pages.Account
                     else
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
+                        return LocalRedirect("/Payment/Plans");
                     }
                 }
                 foreach (var error in result.Errors)
