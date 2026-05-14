@@ -1,0 +1,244 @@
+@model IEnumerable<Netflix_clone.Models.Profile>
+@{
+    ViewData["Title"] = "Manage Profiles";
+    ViewBag.ActivePage = "Profiles";
+    var colors = new[] { "#e50914", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899" };
+    int ci = 0;
+}
+
+<style>
+    .manage-page {
+        max-width: 860px;
+        margin   : 48px auto;
+        padding  : 0 24px 80px;
+    }
+    .manage-header {
+        display        : flex;
+        align-items    : center;
+        justify-content: space-between;
+        margin-bottom  : 36px;
+        flex-wrap      : wrap;
+        gap            : 16px;
+    }
+    .manage-title {
+        font-family   : var(--font-display);
+        font-size     : 36px;
+        letter-spacing: 1px;
+        color         : var(--text-primary);
+    }
+    .btn-add {
+        display      : inline-flex;
+        align-items  : center;
+        gap          : 8px;
+        padding      : 10px 22px;
+        background   : var(--brand);
+        color        : #fff;
+        font-family  : var(--font-body);
+        font-size    : 13px;
+        font-weight  : 600;
+        border-radius: var(--radius-full);
+        text-decoration: none;
+        transition   : background 200ms, transform 150ms;
+    }
+    .btn-add:hover { background: var(--brand-hover); transform: translateY(-1px); color: #fff; }
+    .profiles-list {
+        display      : flex;
+        flex-direction: column;
+        gap          : 12px;
+    }
+    .profile-row {
+        display        : flex;
+        align-items    : center;
+        gap            : 16px;
+        padding        : 16px 20px;
+        background     : var(--bg-surface);
+        border         : 1px solid var(--border-medium);
+        border-radius  : var(--radius-lg);
+        transition     : border-color 200ms;
+    }
+    .profile-row:hover { border-color: rgba(255,255,255,0.2); }
+    .profile-row__avatar {
+        width        : 52px;
+        height       : 52px;
+        border-radius: 10px;
+        display      : flex;
+        align-items  : center;
+        justify-content: center;
+        font-size    : 20px;
+        font-weight  : 700;
+        color        : #fff;
+        flex-shrink  : 0;
+        overflow     : hidden;
+    }
+    .profile-row__avatar img {
+        width     : 100%;
+        height    : 100%;
+        object-fit: cover;
+    }
+    .profile-row__info { flex: 1; }
+    .profile-row__name {
+        font-size  : 15px;
+        font-weight: 600;
+        color      : var(--text-primary);
+    }
+    .profile-row__meta {
+        font-size  : 12px;
+        color      : var(--text-muted);
+        margin-top : 3px;
+        display    : flex;
+        align-items: center;
+        gap        : 8px;
+    }
+    .kid-badge {
+        font-size    : 10px;
+        font-weight  : 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background   : rgba(245,158,11,0.12);
+        color        : #f59e0b;
+        border       : 1px solid rgba(245,158,11,0.25);
+        border-radius: 999px;
+        padding      : 1px 7px;
+    }
+    .active-badge {
+        font-size    : 10px;
+        font-weight  : 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background   : rgba(229,9,20,0.12);
+        color        : var(--brand);
+        border       : 1px solid rgba(229,9,20,0.25);
+        border-radius: 999px;
+        padding      : 1px 7px;
+    }
+    .profile-row__actions {
+        display    : flex;
+        align-items: center;
+        gap        : 8px;
+        flex-shrink: 0;
+    }
+    .row-btn {
+        display      : inline-flex;
+        align-items  : center;
+        gap          : 6px;
+        padding      : 7px 14px;
+        border-radius: var(--radius-full);
+        font-size    : 12px;
+        font-weight  : 500;
+        text-decoration: none;
+        transition   : background 180ms, color 180ms;
+        border       : 1px solid var(--border-medium);
+        color        : var(--text-secondary);
+        background   : transparent;
+    }
+    .row-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+    .row-btn--danger:hover { color: #f87171; border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.06); }
+    .row-btn--switch {
+        background: var(--bg-elevated);
+        border-color: var(--border-medium);
+    }
+    .empty-state {
+        text-align : center;
+        padding    : 64px 24px;
+        color      : var(--text-muted);
+        font-size  : 15px;
+    }
+    .empty-state svg { margin: 0 auto 16px; display: block; opacity: 0.4; }
+</style>
+
+<div class="manage-page">
+    <div class="manage-header">
+        <h1 class="manage-title">Manage Profiles</h1>
+        <a asp-action="AddProfile" class="btn-add">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add Profile
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+            </svg>
+            No profiles yet. Add one to get started.
+        </div>
+    }
+    else
+    {
+        var activeProfileId = Context.Session.GetInt32("ActiveProfileId");
+        <div class="profiles-list">
+            @foreach (var profile in Model)
+            {
+                var bg      = colors[ci % colors.Length];
+                ci++;
+                var initial = profile.Name.Length > 0 ? profile.Name.Substring(0, 1).ToUpper() : "?";
+                var isActive = activeProfileId.HasValue && activeProfileId.Value == profile.Id;
+
+                <div class="profile-row">
+                    <div class="profile-row__avatar" style="background: @bg">
+                        @if (!string.IsNullOrWhiteSpace(profile.Image))
+                        {
+                            <img src="@profile.Image" alt="@profile.Name"
+                                 onerror="this.style.display='none';this.parentElement.textContent='@initial'" />
+                        }
+                        else
+                        {
+                            @initial
+                        }
+                    </div>
+                    <div class="profile-row__info">
+                        <div class="profile-row__name">@profile.Name</div>
+                        <div class="profile-row__meta">
+                            @if (profile.IsKid)
+                            {
+                                <span class="kid-badge">Kids</span>
+                            }
+                            @if (isActive)
+                            {
+                                <span class="active-badge">Active</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="profile-row__actions">
+                        @if (!isActive)
+                        {
+                            <form asp-action="SelectProfile" asp-route-id="@profile.Id" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="row-btn row-btn--switch">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="17 1 21 5 17 9"/>
+                                        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                                        <polyline points="7 23 3 19 7 15"/>
+                                        <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                                    </svg>
+                                    Switch
+                                </button>
+                            </form>
+                        }
+                        <a asp-action="UpdateProfile" asp-route-id="@profile.Id" class="row-btn">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                            Edit
+                        </a>
+                        <a asp-action="DeleteProfile" asp-route-id="@profile.Id" class="row-btn row-btn--danger">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                <path d="M10 11v6"/><path d="M14 11v6"/>
+                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                            </svg>
+                            Delete
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

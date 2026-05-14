@@ -38,15 +38,10 @@
         Initials    = initials
     };
 
-    // ── Mock: profile list ───────────────────────────────────────────
-    // Each user can have multiple profiles (kid-safe, adult, etc.).
-    // In production this list comes from ProfileService or a ViewModel.
-    var profiles = new[]
-    {
-        new { Id = 1, Name = "Ahmed",   Avatar = "AH", Color = "#e50914", IsKid = false, IsActive = true  },
-        new { Id = 2, Name = "Sara",    Avatar = "SA", Color = "#3b82f6", IsKid = false, IsActive = false },
-        new { Id = 3, Name = "Kids",    Avatar = "★",  Color = "#f59e0b", IsKid = true,  IsActive = false }
-    };
+    // ── Real profiles from DB (passed by HomeController via ViewBag) ────
+    var userProfiles   = ViewBag.UserProfiles   as List<Netflix_clone.Models.Profile> ?? new List<Netflix_clone.Models.Profile>();
+    var activeProfileId = ViewBag.ActiveProfileId as int?;
+    var profileColors  = new[] { "#e50914", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899" };
 
     // ── Mock: navigation categories ─────────────────────────────────
     // Shown in the "Browse" mega-dropdown. Real data comes from
@@ -1181,33 +1176,56 @@
                         <!-- Profile Switcher -->
                         <div class="profile-panel__section">
                             <div class="profile-panel__label">Switch Profile</div>
-                            @foreach (var profile in profiles)
+                            @{ int pci = 0; }
+                            @foreach (var p in userProfiles)
                             {
-                                <button class="profile-item @(profile.IsActive ? "active" : "")"
-                                        role="menuitem"
-                                        aria-current="@profile.IsActive.ToString().ToLower()"
-                                        onclick="switchProfile('@profile.Name')">
-                                    <div class="profile-avatar"
-                                         style="background: @profile.Color; width:30px; height:30px; font-size:12px; border-radius: 8px;"
-                                         aria-hidden="true">
-                                        @profile.Avatar
-                                    </div>
-                                    <span class="profile-item__name">@profile.Name</span>
-                                    @if (profile.IsKid)
-                                    {
-                                        <span class="profile-item__kid">KIDS</span>
-                                    }
-                                    <svg class="profile-item__check" width="14" height="14"
-                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                        <polyline points="20 6 9 17 4 12" />
-                                    </svg>
-                                </button>
+                                var pColor   = profileColors[pci % profileColors.Length];
+                                pci++;
+                                var pInitial = p.Name.Length > 0 ? p.Name.Substring(0, 1).ToUpper() : "?";
+                                var isActive = activeProfileId.HasValue && activeProfileId.Value == p.Id;
+                                <form asp-controller="Profiles" asp-action="SelectProfile" asp-route-id="@p.Id"
+                                      method="post" style="margin:0">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="profile-item @(isActive ? "active" : "")"
+                                            role="menuitem"
+                                            aria-current="@isActive.ToString().ToLower()">
+                                        <div class="profile-avatar"
+                                             style="background: @pColor; width:30px; height:30px; font-size:12px; border-radius: 8px;"
+                                             aria-hidden="true">
+                                            @if (!string.IsNullOrWhiteSpace(p.Image))
+                                            {
+                                                <img src="@p.Image" alt="@p.Name" style="width:100%;height:100%;object-fit:cover;border-radius:8px"
+                                                     onerror="this.style.display='none';this.parentElement.textContent='@pInitial'" />
+                                            }
+                                            else
+                                            {
+                                                @pInitial
+                                            }
+                                        </div>
+                                        <span class="profile-item__name">@p.Name</span>
+                                        @if (p.IsKid)
+                                        {
+                                            <span class="profile-item__kid">KIDS</span>
+                                        }
+                                        <svg class="profile-item__check" width="14" height="14"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                            <polyline points="20 6 9 17 4 12" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            }
+                            @if (!userProfiles.Any())
+                            {
+                                <a asp-controller="Profiles" asp-action="SelectProfile" class="profile-item" role="menuitem">
+                                    <span class="profile-item__name" style="color:var(--text-muted)">No profiles yet</span>
+                                </a>
                             }
                         </div>
 
                         <!-- Action Links -->
                         <div class="profile-panel__actions">
-                            <a href="/Profile/Manage" class="profile-action" role="menuitem">
+                            <a asp-controller="Profiles" asp-action="ManageProfiles" class="profile-action" role="menuitem">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                                     <circle cx="12" cy="7" r="4" />

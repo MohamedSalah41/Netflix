@@ -12,10 +12,22 @@ namespace Netflix_clone.Controllers
         {
             _netflixContext = netflixContext;
         }
-        // GET: SeriesController
         public ActionResult GetAllSeries()
         {
-            return View(_netflixContext.Series.ToList());
+            var activeProfileId = HttpContext.Session.GetInt32("ActiveProfileId");
+            bool isKid = false;
+            if (activeProfileId.HasValue)
+            {
+                var profile = _netflixContext.Profiles.Find(activeProfileId.Value);
+                isKid = profile?.IsKid ?? false;
+            }
+
+            var series = _netflixContext.Series.Include(s => s.Categories).ToList();
+
+            if (isKid)
+                series = series.Where(s => !s.Categories.Any(c => c.Name.Equals("18+", StringComparison.OrdinalIgnoreCase))).ToList();
+
+            return View(series);
         }
 
         // GET: SeriesController/Details/5
@@ -41,8 +53,8 @@ namespace Netflix_clone.Controllers
             return View();
         }
 
-        // POST: SeriesController/Create
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult AddSeries(
     Series series,
     List<int> actorIds,
@@ -98,7 +110,6 @@ namespace Netflix_clone.Controllers
             }
         }
 
-        // GET: SeriesController/Edit/5
         public ActionResult UpdateSeries(int id)
         {
             var series = _netflixContext.Series
@@ -109,14 +120,16 @@ namespace Netflix_clone.Controllers
             if (series == null)
                 return NotFound();
 
-            ViewBag.Actors = _netflixContext.Actors.ToList();
-            ViewBag.Categories = _netflixContext.Categories.ToList();
+            ViewBag.Actors              = _netflixContext.Actors.ToList();
+            ViewBag.Categories          = _netflixContext.Categories.ToList();
+            ViewBag.SelectedActorIds    = series.Actors.Select(a => a.Id).ToList();
+            ViewBag.SelectedCategoryIds = series.Categories.Select(c => c.Id).ToList();
 
             return View(series);
         }
 
-        // POST: SeriesController/Edit/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult UpdateSeries(
      Series series,
      List<int> actorIds,
@@ -124,8 +137,10 @@ namespace Netflix_clone.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Actors = _netflixContext.Actors.ToList();
-                ViewBag.Categories = _netflixContext.Categories.ToList();
+                ViewBag.Actors              = _netflixContext.Actors.ToList();
+                ViewBag.Categories          = _netflixContext.Categories.ToList();
+                ViewBag.SelectedActorIds    = actorIds;
+                ViewBag.SelectedCategoryIds = categoryIds;
                 return View(series);
             }
 
@@ -137,28 +152,19 @@ namespace Netflix_clone.Controllers
             if (existingSeries == null)
                 return NotFound();
 
-            // Update fields
-            existingSeries.Name = series.Name;
+            existingSeries.Name        = series.Name;
             existingSeries.Description = series.Description;
-            existingSeries.Poster = series.Poster;
-            existingSeries.TrailerUrl = series.TrailerUrl;
-            existingSeries.Rating = series.Rating;
+            existingSeries.Poster      = series.Poster;
+            existingSeries.TrailerUrl  = series.TrailerUrl;
+            existingSeries.Rating      = series.Rating;
 
-            // Clear old relations
             existingSeries.Actors.Clear();
             existingSeries.Categories.Clear();
 
-            // Add new Actors
-            var actors = _netflixContext.Actors
-                .Where(a => actorIds.Contains(a.Id))
-                .ToList();
-
-            var categories = _netflixContext.Categories
-                .Where(c => categoryIds.Contains(c.Id))
-                .ToList();
-
-            existingSeries.Actors = actors;
-            existingSeries.Categories = categories;
+            existingSeries.Actors = _netflixContext.Actors
+                .Where(a => actorIds.Contains(a.Id)).ToList();
+            existingSeries.Categories = _netflixContext.Categories
+                .Where(c => categoryIds.Contains(c.Id)).ToList();
 
             _netflixContext.SaveChanges();
 

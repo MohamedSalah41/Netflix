@@ -1,0 +1,201 @@
+@model IEnumerable<Netflix_clone.Models.Profile>
+@{
+    ViewData["Title"] = "Who's Watching?";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Who's Watching? — WatchIt</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family   : 'DM Sans', system-ui, sans-serif;
+            background    : #080810;
+            color         : #f0f0f8;
+            min-height    : 100vh;
+            display       : flex;
+            flex-direction: column;
+            align-items   : center;
+            justify-content: center;
+            padding       : 40px 24px;
+        }
+        .logo {
+            font-family   : 'Bebas Neue', cursive;
+            font-size     : 32px;
+            letter-spacing: 2px;
+            color         : #e50914;
+            position      : fixed;
+            top           : 28px;
+            left          : 32px;
+        }
+        .logo span { color: #f0f0f8; }
+        .page-title {
+            font-family   : 'Bebas Neue', cursive;
+            font-size     : clamp(32px, 5vw, 52px);
+            letter-spacing: 2px;
+            color         : #f0f0f8;
+            margin-bottom : 48px;
+            text-align    : center;
+        }
+        .profiles-grid {
+            display        : flex;
+            flex-wrap      : wrap;
+            gap            : 32px;
+            justify-content: center;
+            max-width      : 900px;
+        }
+        .profile-pick {
+            display       : flex;
+            flex-direction: column;
+            align-items   : center;
+            gap           : 14px;
+            cursor        : pointer;
+            text-decoration: none;
+            color         : #9898b8;
+            transition    : color 200ms;
+        }
+        .profile-pick:hover { color: #f0f0f8; }
+        .profile-pick:hover .profile-pick__avatar { border-color: #f0f0f8; transform: scale(1.06); }
+        .profile-pick__avatar {
+            width        : 120px;
+            height       : 120px;
+            border-radius: 12px;
+            border       : 3px solid transparent;
+            overflow     : hidden;
+            transition   : border-color 200ms, transform 200ms;
+            display      : flex;
+            align-items  : center;
+            justify-content: center;
+            font-size    : 42px;
+            font-weight  : 700;
+            color        : #fff;
+            flex-shrink  : 0;
+        }
+        .profile-pick__avatar img {
+            width     : 100%;
+            height    : 100%;
+            object-fit: cover;
+        }
+        .profile-pick__name {
+            font-size  : 15px;
+            font-weight: 500;
+            text-align : center;
+        }
+        .profile-pick__kid {
+            font-size    : 10px;
+            font-weight  : 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background   : rgba(245,158,11,0.15);
+            color        : #f59e0b;
+            border       : 1px solid rgba(245,158,11,0.3);
+            border-radius: 999px;
+            padding      : 2px 8px;
+        }
+        .add-profile-btn {
+            display       : flex;
+            flex-direction: column;
+            align-items   : center;
+            gap           : 14px;
+            cursor        : pointer;
+            text-decoration: none;
+            color         : #5a5a7a;
+            transition    : color 200ms;
+        }
+        .add-profile-btn:hover { color: #9898b8; }
+        .add-profile-btn:hover .add-profile-btn__icon { border-color: #9898b8; }
+        .add-profile-btn__icon {
+            width        : 120px;
+            height       : 120px;
+            border-radius: 12px;
+            border       : 3px dashed #2a2a3e;
+            display      : flex;
+            align-items  : center;
+            justify-content: center;
+            font-size    : 40px;
+            transition   : border-color 200ms;
+        }
+        .manage-link {
+            margin-top     : 48px;
+            display        : inline-flex;
+            align-items    : center;
+            gap            : 8px;
+            padding        : 10px 24px;
+            border-radius  : 999px;
+            border         : 1px solid rgba(255,255,255,0.15);
+            font-size      : 13px;
+            font-weight    : 500;
+            color          : #9898b8;
+            text-decoration: none;
+            transition     : color 200ms, border-color 200ms, background 200ms;
+        }
+        .manage-link:hover {
+            color        : #f0f0f8;
+            border-color : rgba(255,255,255,0.3);
+            background   : rgba(255,255,255,0.05);
+        }
+        .avatar-colors { display: none; }
+    </style>
+</head>
+<body>
+    <a href="/" class="logo">WATCH<span>IT</span></a>
+
+    <h1 class="page-title">Who's Watching?</h1>
+
+    <div class="profiles-grid">
+        @{
+            var colors = new[] { "#e50914", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899" };
+            int ci = 0;
+        }
+        @foreach (var profile in Model)
+        {
+            var bg = colors[ci % colors.Length];
+            ci++;
+            var initial = profile.Name.Length > 0 ? profile.Name.Substring(0, 1).ToUpper() : "?";
+
+            <form asp-action="SelectProfile" asp-route-id="@profile.Id" method="post" style="display:contents">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="profile-pick" title="Switch to @profile.Name">
+                    <div class="profile-pick__avatar" style="background: @bg">
+                        @if (!string.IsNullOrWhiteSpace(profile.Image))
+                        {
+                            <img src="@profile.Image" alt="@profile.Name"
+                                 onerror="this.style.display='none';this.parentElement.textContent='@initial'" />
+                        }
+                        else
+                        {
+                            @initial
+                        }
+                    </div>
+                    <span class="profile-pick__name">@profile.Name</span>
+                    @if (profile.IsKid)
+                    {
+                        <span class="profile-pick__kid">Kids</span>
+                    }
+                </button>
+            </form>
+        }
+
+        <a asp-action="AddProfile" class="add-profile-btn" title="Add profile">
+            <div class="add-profile-btn__icon">+</div>
+            <span style="font-size:15px; font-weight:500;">Add Profile</span>
+        </a>
+    </div>
+
+    <a asp-action="ManageProfiles" class="manage-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Manage Profiles
+    </a>
+</body>
+</html>
