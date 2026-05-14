@@ -1,30 +1,156 @@
 @model Netflix_clone.Models.Profile
 @{
-    ViewData["Title"] = "Update Profile";
+    ViewData["Title"] = "Edit Profile";
+    ViewBag.ActivePage = "Profiles";
 }
 
-<h2>Update Profile</h2>
+<style>
+    .form-page { max-width: 520px; margin: 48px auto; padding: 0 24px 80px; }
+    .form-back {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 13px; color: var(--text-muted); text-decoration: none;
+        margin-bottom: 28px; transition: color 180ms;
+    }
+    .form-back:hover { color: var(--text-secondary); }
+    .form-card {
+        background: var(--bg-surface); border: 1px solid var(--border-medium);
+        border-radius: var(--radius-lg); overflow: hidden;
+    }
+    .form-card__header {
+        padding: 28px 32px 24px; border-bottom: 1px solid var(--border-subtle);
+        display: flex; align-items: center; gap: 16px;
+    }
+    .form-card__icon {
+        width: 48px; height: 48px; border-radius: 12px;
+        background: var(--brand-dim); border: 1px solid rgba(229,9,20,0.25);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; flex-shrink: 0;
+    }
+    .form-card__title { font-family: var(--font-display); font-size: 26px; letter-spacing: 1px; color: var(--text-primary); line-height: 1; }
+    .form-card__sub { font-size: 13px; color: var(--text-muted); margin-top: 5px; }
+    .form-card__body { padding: 32px; }
+    .form-error-box {
+        background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.3);
+        border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 24px;
+        font-size: 13px; color: #fca5a5;
+    }
+    .form-field { margin-bottom: 24px; }
+    .form-label {
+        display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+        text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;
+    }
+    .form-input {
+        width: 100%; padding: 11px 16px; background: var(--bg-elevated);
+        border: 1px solid var(--border-medium); border-radius: var(--radius-md);
+        color: var(--text-primary); font-family: var(--font-body); font-size: 14px;
+        outline: none; transition: border-color 200ms, box-shadow 200ms;
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-dim); }
+    .form-field-error { display: block; font-size: 12px; color: #f87171; margin-top: 6px; }
+    .toggle-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 16px; background: var(--bg-elevated);
+        border: 1px solid var(--border-medium); border-radius: var(--radius-md);
+    }
+    .toggle-row__label { font-size: 14px; color: var(--text-primary); }
+    .toggle-row__sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+        position: absolute; inset: 0; background: var(--border-medium);
+        border-radius: 999px; cursor: pointer; transition: background 200ms;
+    }
+    .toggle-slider::before {
+        content: ''; position: absolute; width: 18px; height: 18px;
+        left: 3px; top: 3px; background: #fff; border-radius: 50%;
+        transition: transform 200ms;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--brand); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+    .form-footer {
+        padding: 24px 32px; border-top: 1px solid var(--border-subtle);
+        display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+    }
+    .btn-ghost {
+        display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px;
+        border-radius: var(--radius-full); font-family: var(--font-body); font-size: 13px;
+        font-weight: 500; color: var(--text-secondary); background: transparent;
+        border: 1px solid var(--border-medium); text-decoration: none;
+        transition: color 180ms, background 180ms;
+    }
+    .btn-ghost:hover { color: var(--text-primary); background: var(--bg-elevated); }
+    .btn-submit {
+        display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px;
+        background: var(--brand); color: #fff; font-family: var(--font-body);
+        font-size: 13px; font-weight: 600; border-radius: var(--radius-full);
+        border: none; cursor: pointer; transition: background 200ms, transform 150ms;
+    }
+    .btn-submit:hover { background: var(--brand-hover); transform: translateY(-1px); }
+</style>
 
-<form asp-action="UpdateProfile" method="post">
-    <input type="hidden" asp-for="Id" />
+<div class="form-page">
+    <a asp-action="ManageProfiles" class="form-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back to Profiles
+    </a>
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-card">
+        <div class="form-card__header">
+            <div class="form-card__icon" aria-hidden="true">✏️</div>
+            <div>
+                <div class="form-card__title">Edit Profile</div>
+                <div class="form-card__sub">Update profile details for @Model.Name.</div>
+            </div>
+        </div>
 
-    <div class="form-group">
-        <label asp-for="Name" class="control-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+        <form asp-action="UpdateProfile" asp-route-id="@Model.Id" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="form-error-box text-danger"></div>
+
+            <div class="form-card__body">
+                <div class="form-field">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-input" />
+                    <span asp-validation-for="Name" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Image" class="form-label">Avatar URL</label>
+                    <input asp-for="Image" class="form-input" placeholder="https://example.com/avatar.jpg" />
+                    <span asp-validation-for="Image" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-row__label">Kids Profile</div>
+                            <div class="toggle-row__sub">Restricts content to age-appropriate titles</div>
+                        </div>
+                        <label class="toggle">
+                            <input asp-for="IsKid" type="checkbox" />
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-footer">
+                <a asp-action="ManageProfiles" class="btn-ghost">Cancel</a>
+                <button type="submit" class="btn-submit">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Save Changes
+                </button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <div class="form-group form-check">
-        <input asp-for="IsKid" class="form-check-input" />
-        <label asp-for="IsKid" class="form-check-label"></label>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Image" class="control-label"></label>
-        <input asp-for="Image" class="form-control" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save</button>
-</form>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

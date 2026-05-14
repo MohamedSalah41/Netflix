@@ -18,8 +18,23 @@ namespace Netflix_clone.Controllers
 
         public IActionResult Index()
         {
+            var activeProfileId = HttpContext.Session.GetInt32("ActiveProfileId");
+
+            bool isKid = false;
+            if (activeProfileId.HasValue)
+            {
+                var activeProfile = _db.Profiles.Find(activeProfileId.Value);
+                isKid = activeProfile?.IsKid ?? false;
+            }
+
             var allSeries = _db.Series.Include(s => s.Categories).ToList();
             var allMovies = _db.Movies.Include(m => m.Categories).ToList();
+
+            if (isKid)
+            {
+                allSeries = allSeries.Where(s => !s.Categories.Any(c => c.Name.Equals("18+", StringComparison.OrdinalIgnoreCase))).ToList();
+                allMovies = allMovies.Where(m => !m.Categories.Any(c => c.Name.Equals("18+", StringComparison.OrdinalIgnoreCase))).ToList();
+            }
 
             var allRows = allSeries.Select(s => new MediaRow { Item = s, ItemType = "Series" })
                           .Concat(allMovies.Select(m => new MediaRow { Item = m, ItemType = "Movie" }))
@@ -46,43 +61,59 @@ namespace Netflix_clone.Controllers
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                var profileIds = _db.Profiles
-                    .Where(p => p.AppUserId == userId)
-                    .Select(p => p.Id)
-                    .ToList();
+                IQueryable<WatchHistory> historyQuery;
 
-                if (profileIds.Any())
+                if (activeProfileId.HasValue)
                 {
-                    var histories = _db.WatchHistory
-                        .Where(w => w.ProfileId != null && profileIds.Contains(w.ProfileId.Value) && !w.IsFinished)
-                        .OrderByDescending(w => w.LastWatchedUtc)
-                        .Take(10)
+                    historyQuery = _db.WatchHistory
+                        .Where(w => w.ProfileId == activeProfileId.Value && !w.IsFinished);
+                }
+                else
+                {
+                    var profileIds = _db.Profiles
+                        .Where(p => p.AppUserId == userId)
+                        .Select(p => p.Id)
                         .ToList();
 
-                    foreach (var h in histories)
-                    {
-                        if (h.MediaItemId == null) continue;
-
-                        Movie? movie = _db.Movies.Find(h.MediaItemId);
-                        Episode? episode = movie == null ? _db.Episodes.Find(h.MediaItemId) : null;
-                        BaseItem? item = (BaseItem?)movie ?? episode;
-
-                        if (item == null) continue;
-
-                        var totalSeconds = item is MediaItem mi ? mi.DurationSeconds.TotalSeconds : 0;
-                        var pct = totalSeconds > 0
-                            ? Math.Min(100, h.Progress.TotalSeconds / totalSeconds * 100)
-                            : 0;
-
-                        continueWatching.Add(new ContinueWatchingItem
-                        {
-                            Item            = item,
-                            ItemType        = movie != null ? "Movie" : "Episode",
-                            ProgressPercent = pct,
-                            LastWatched     = h.LastWatchedUtc.ToString("MMM d")
-                        });
-                    }
+                    historyQuery = _db.WatchHistory
+                        .Where(w => w.ProfileId != null && profileIds.Contains(w.ProfileId.Value) && !w.IsFinished);
                 }
+
+                var histories = historyQuery
+                    .OrderByDescending(w => w.LastWatchedUtc)
+                    .Take(10)
+                    .ToList();
+
+                foreach (var h in histories)
+                {
+                    if (h.MediaItemId == null) continue;
+
+                    Movie? movie = _db.Movies.Find(h.MediaItemId);
+                    Episode? episode = movie == null ? _db.Episodes.Find(h.MediaItemId) : null;
+                    BaseItem? item = (BaseItem?)movie ?? episode;
+
+                    if (item == null) continue;
+
+                    var totalSeconds = item is MediaItem mi ? mi.DurationSeconds.TotalSeconds : 0;
+                    var pct = totalSeconds > 0
+                        ? Math.Min(100, h.Progress.TotalSeconds / totalSeconds * 100)
+                        : 0;
+
+                    continueWatching.Add(new ContinueWatchingItem
+                    {
+                        Item            = item,
+                        ItemType        = movie != null ? "Movie" : "Episode",
+                        ProgressPercent = pct,
+                        LastWatched     = h.LastWatchedUtc.ToString("MMM d")
+                    });
+                }
+
+                var userProfiles = _db.Profiles
+                    .Where(p => p.AppUserId == userId)
+                    .ToList();
+
+                ViewBag.UserProfiles    = userProfiles;
+                ViewBag.ActiveProfileId = activeProfileId;
             }
 
             var vm = new HomeViewModel

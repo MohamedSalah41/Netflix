@@ -13,10 +13,22 @@ namespace Netflix_clone.Controllers
         {
             this.context = context;
         }
-        // GET: MovieController
         public ActionResult GetAllMovies()
         {
-            return View(context.Movies.ToList());
+            var activeProfileId = HttpContext.Session.GetInt32("ActiveProfileId");
+            bool isKid = false;
+            if (activeProfileId.HasValue)
+            {
+                var profile = context.Profiles.Find(activeProfileId.Value);
+                isKid = profile?.IsKid ?? false;
+            }
+
+            var movies = context.Movies.Include(m => m.Categories).ToList();
+
+            if (isKid)
+                movies = movies.Where(m => !m.Categories.Any(c => c.Name.Equals("18+", StringComparison.OrdinalIgnoreCase))).ToList();
+
+            return View(movies);
         }
 
         // GET: MovieController/Details/5
@@ -29,56 +41,104 @@ namespace Netflix_clone.Controllers
             return View(movie);
         }
 
-        // GET: MovieController/Create
         public ActionResult AddMovie()
         {
+            ViewBag.Actors     = context.Actors.ToList();
+            ViewBag.Categories = context.Categories.ToList();
             return View();
         }
 
-        // POST: MovieController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult AddMovie(Movie NewMovie)
+        public ActionResult AddMovie(Movie NewMovie, List<int> actorIds, List<int> categoryIds)
         {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Actors     = context.Actors.ToList();
+                ViewBag.Categories = context.Categories.ToList();
+                return View(NewMovie);
+            }
+
             try
             {
-                if (ModelState.IsValid)
-                {
-                    context.Movies.Add(NewMovie);
-                    context.SaveChanges();
-                }
-
+                NewMovie.Actors     = context.Actors.Where(a => actorIds.Contains(a.Id)).ToList();
+                NewMovie.Categories = context.Categories.Where(c => categoryIds.Contains(c.Id)).ToList();
+                context.Movies.Add(NewMovie);
+                context.SaveChanges();
                 return RedirectToAction(nameof(GetAllMovies));
             }
             catch
             {
+                ViewBag.Actors     = context.Actors.ToList();
+                ViewBag.Categories = context.Categories.ToList();
                 return View(NewMovie);
             }
         }
 
-        // GET: MovieController/Edit/5
         public ActionResult Edit(int id)
         {
-            return View(context.Movies.FirstOrDefault(m=>m.Id==id));
+            var movie = context.Movies
+                .Include(m => m.Actors)
+                .Include(m => m.Categories)
+                .FirstOrDefault(m => m.Id == id);
+
+            if (movie is null) return NotFound();
+
+            ViewBag.Actors     = context.Actors.ToList();
+            ViewBag.Categories = context.Categories.ToList();
+            ViewBag.SelectedActorIds    = movie.Actors.Select(a => a.Id).ToList();
+            ViewBag.SelectedCategoryIds = movie.Categories.Select(c => c.Id).ToList();
+
+            return View(movie);
         }
 
-        // POST: MovieController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, Movie DBMovie)
+        public ActionResult Edit(int id, Movie DBMovie, List<int> actorIds, List<int> categoryIds)
         {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Actors     = context.Actors.ToList();
+                ViewBag.Categories = context.Categories.ToList();
+                ViewBag.SelectedActorIds    = actorIds;
+                ViewBag.SelectedCategoryIds = categoryIds;
+                return View(DBMovie);
+            }
+
             try
             {
-                if (ModelState.IsValid)
-                {
-                    context.Update(DBMovie);
-                    context.SaveChanges();
-                }
+                var existing = context.Movies
+                    .Include(m => m.Actors)
+                    .Include(m => m.Categories)
+                    .FirstOrDefault(m => m.Id == id);
+
+                if (existing is null) return NotFound();
+
+                existing.Name            = DBMovie.Name;
+                existing.Description     = DBMovie.Description;
+                existing.Poster          = DBMovie.Poster;
+                existing.VideoUrl        = DBMovie.VideoUrl;
+                existing.DurationSeconds = DBMovie.DurationSeconds;
+                existing.Rating          = DBMovie.Rating;
+
+                existing.Actors.Clear();
+                existing.Categories.Clear();
+
+                existing.Actors = context.Actors
+                    .Where(a => actorIds.Contains(a.Id)).ToList();
+                existing.Categories = context.Categories
+                    .Where(c => categoryIds.Contains(c.Id)).ToList();
+
+                context.SaveChanges();
                 return RedirectToAction(nameof(GetAllMovies));
             }
             catch
             {
-                return View();
+                ViewBag.Actors     = context.Actors.ToList();
+                ViewBag.Categories = context.Categories.ToList();
+                ViewBag.SelectedActorIds    = actorIds;
+                ViewBag.SelectedCategoryIds = categoryIds;
+                return View(DBMovie);
             }
         }
 
