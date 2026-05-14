@@ -1,0 +1,51 @@
+@page "/Account/ExternalLogin"
+@model ExternalLoginModel
+
+@{
+    ViewData["Title"] = "Complete Registration";
+}
+
+<partial name="_MovieFormStyle" />
+
+<div class="form-page">
+    <div class="form-card">
+        <div class="form-card__header">
+            <div class="form-card__icon">🔗</div>
+            <div>
+                <div class="form-card__title">Complete Registration</div>
+                <div class="form-card__sub">
+                    You've authenticated with <strong>@Model.ProviderDisplayName</strong>.
+                    Please enter a username to finish creating your account.
+                </div>
+            </div>
+        </div>
+
+        <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <div class="form-card__body">
+                <div asp-validation-summary="ModelOnly" class="form-error-box" role="alert"></div>
+
+                <div class="form-field">
+                    <label asp-for="Input.Email" class="form-label">Email</label>
+                    <input asp-for="Input.Email" class="form-input" readonly />
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Input.UserName" class="form-label">Username</label>
+                    <input asp-for="Input.UserName" class="form-input" autocomplete="username" aria-required="true" placeholder="Choose a username" />
+                    <span asp-validation-for="Input.UserName" class="form-field-error"></span>
+                </div>
+            </div>
+
+            <div class="form-footer" style="justify-content:flex-end;">
+                <button type="submit" class="btn-submit">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
+                    Create Account
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
