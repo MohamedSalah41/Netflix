@@ -19,6 +19,7 @@ namespace Netflix_clone.Models
         public DbSet<Profile> Profiles => Set<Profile>();
         public DbSet<WatchHistory> WatchHistory => Set<WatchHistory>();
         public DbSet<MyListItem> MyListItems => Set<MyListItem>();
+        public DbSet<Subscription> Subscriptions => Set<Subscription>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -332,6 +333,20 @@ namespace Netflix_clone.Models
                 entity.HasOne(m => m.AppUser)
                       .WithMany()
                       .HasForeignKey(m => m.AppUserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Subscription>(entity =>
+            {
+                entity.ToTable("Subscriptions");
+                entity.HasKey(s => s.Id);
+                entity.Property(s => s.AppUserId).IsRequired();
+                entity.Property(s => s.StripeCustomerId).HasMaxLength(256);
+                entity.Property(s => s.StripeSubscriptionId).HasMaxLength(256);
+                entity.Property(s => s.StartDate).IsRequired();
+                entity.HasOne(s => s.AppUser)
+                      .WithOne(u => u.Subscription)
+                      .HasForeignKey<Subscription>(s => s.AppUserId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
         }

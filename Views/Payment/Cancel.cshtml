@@ -1,0 +1,117 @@
+@{
+    ViewData["Title"] = "Payment Cancelled";
+}
+
+<style>
+    .result-page {
+        min-height: calc(100vh - var(--navbar-h));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 24px;
+    }
+
+    .result-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-medium);
+        border-radius: var(--radius-lg);
+        padding: 48px 40px;
+        max-width: 480px;
+        width: 100%;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .result-card__icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: rgba(229,9,20,0.12);
+        color: var(--brand);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+    }
+
+    .result-card__title {
+        font-family: var(--font-display);
+        font-size: 36px;
+        letter-spacing: 1px;
+        color: var(--text-primary);
+    }
+
+    .result-card__body {
+        font-size: 15px;
+        color: var(--text-secondary);
+        line-height: 1.65;
+    }
+
+    .result-card__actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .result-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 13px 24px;
+        border-radius: var(--radius-full);
+        font-size: 14px;
+        font-weight: 700;
+        transition: background 200ms, transform 150ms;
+        cursor: pointer;
+        font-family: var(--font-body);
+        border: none;
+        text-decoration: none;
+    }
+
+    .result-btn--primary {
+        background: var(--brand);
+        color: #fff;
+    }
+
+    .result-btn--primary:hover {
+        background: var(--brand-hover);
+        transform: translateY(-1px);
+        color: #fff;
+    }
+
+    .result-btn--ghost {
+        background: var(--bg-elevated);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-medium);
+    }
+
+    .result-btn--ghost:hover {
+        color: var(--text-primary);
+        background: var(--bg-elevated);
+    }
+</style>
+
+<div class="result-page">
+    <div class="result-card">
+        <div class="result-card__icon">✕</div>
+        <h1 class="result-card__title">Payment Cancelled</h1>
+        <p class="result-card__body">
+            No charge was made. You can choose a plan whenever you're ready.
+        </p>
+        <div class="result-card__actions">
+            <a asp-controller="Payment" asp-action="Plans" class="result-btn result-btn--primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                View Plans
+            </a>
+            <a asp-controller="Home" asp-action="Index" class="result-btn result-btn--ghost">
+                Back to Home
+            </a>
+        </div>
+    </div>
+</div>

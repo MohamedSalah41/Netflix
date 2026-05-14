@@ -18,6 +18,15 @@ namespace Netflix_clone.Controllers
 
         public IActionResult Index()
         {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var hasSub = _db.Subscriptions
+                    .Any(s => s.AppUserId == uid && s.Status == Netflix_clone.Models.SubscriptionStatus.Active);
+                if (!hasSub)
+                    return RedirectToAction("Plans", "Payment");
+            }
+
             var activeProfileId = HttpContext.Session.GetInt32("ActiveProfileId");
 
             bool isKid = false;
