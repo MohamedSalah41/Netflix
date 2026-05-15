@@ -1,0 +1,34 @@
+@{
+    ViewBag.Title = "Devices";
+}
+
+<section style="padding:32px 4%;max-width:1000px;">
+    <h1 style="color:#fff;margin-bottom:8px;">Supported Devices</h1>
+    <p style="color:var(--text-muted)">WatchIt runs on many devices. Below is an illustrative list of supported platforms.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:18px;">
+        <div style="background:rgba(20,20,20,0.9);padding:16px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.04)">
+            <img src="/images/img1.svg" alt="Web" style="width:64px;height:48px;object-fit:contain;margin-bottom:8px" />
+            <div style="color:#fff">Web browsers</div>
+            <div style="color:var(--text-muted);font-size:13px">Chrome, Edge, Firefox, Safari</div>
+        </div>
+
+        <div style="background:rgba(20,20,20,0.9);padding:16px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.04)">
+            <img src="/images/img1.svg" alt="iOS" style="width:64px;height:48px;object-fit:contain;margin-bottom:8px" />
+            <div style="color:#fff">iOS</div>
+            <div style="color:var(--text-muted);font-size:13px">iPhone, iPad (modern versions)</div>
+        </div>
+
+        <div style="background:rgba(20,20,20,0.9);padding:16px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.04)">
+            <img src="/images/img1.svg" alt="Android" style="width:64px;height:48px;object-fit:contain;margin-bottom:8px" />
+            <div style="color:#fff">Android</div>
+            <div style="color:var(--text-muted);font-size:13px">Phones and tablets</div>
+        </div>
+
+        <div style="background:rgba(20,20,20,0.9);padding:16px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.04)">
+            <img src="/images/img1.svg" alt="TV" style="width:64px;height:48px;object-fit:contain;margin-bottom:8px" />
+            <div style="color:#fff">Smart TVs</div>
+            <div style="color:var(--text-muted);font-size:13px">Popular TV platforms and streaming devices</div>
+        </div>
+    </div>
+</section>

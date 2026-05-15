@@ -269,19 +269,17 @@ namespace Netflix_clone.Controllers
             bool isKid = false;
             if (activeProfileId.HasValue)
             {
-                var activeProfile = _db.Profiles.Find(activeProfileId.Value);
+                var activeProfile = _profileRepo.GetById(activeProfileId.Value);
                 isKid = activeProfile?.IsKid ?? false;
             }
 
-            var movies = _db.Movies
-                .Include(m => m.Categories)
-                .Where(m => m.Name.ToLower().Contains(query) || m.Description.ToLower().Contains(query))
+            var movies = _movieRepo.GetAllWithIncludes(m => m.Categories)
+                .Where(m => (!string.IsNullOrEmpty(m.Name) && m.Name.ToLower().Contains(query)) || (!string.IsNullOrEmpty(m.Description) && m.Description.ToLower().Contains(query)))
                 .Take(10)
                 .ToList();
 
-            var series = _db.Series
-                .Include(s => s.Categories)
-                .Where(s => s.Name.ToLower().Contains(query) || s.Description.ToLower().Contains(query))
+            var series = _seriesRepo.GetAllWithIncludes(s => s.Categories)
+                .Where(s => (!string.IsNullOrEmpty(s.Name) && s.Name.ToLower().Contains(query)) || (!string.IsNullOrEmpty(s.Description) && s.Description.ToLower().Contains(query)))
                 .Take(10)
                 .ToList();
 
