@@ -172,5 +172,57 @@ namespace Netflix_clone.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        public IActionResult Browse(string category)
+        {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var hasSub = _subscriptionRepo.FindAll(s => s.AppUserId == uid && s.Status == SubscriptionStatus.Active).Any();
+                if (!hasSub)
+                    return RedirectToAction("Plans", "Payment");
+            }
+
+            var activeProfileId = HttpContext.Session.GetInt32("ActiveProfileId");
+
+            bool isKid = false;
+            if (activeProfileId.HasValue)
+            {
+                var activeProfile = _profileRepo.GetById(activeProfileId.Value);
+                isKid = activeProfile?.IsKid ?? false;
+            }
+
+            var allSeries = _seriesRepo.GetAllWithIncludes(s => s.Categories).ToList();
+            var allMovies = _movieRepo.GetAllWithIncludes(m => m.Categories).ToList();
+
+            if (isKid)
+            {
+                allSeries = allSeries.Where(s => !s.Categories.Any(c => c.Name.Equals("18+", StringComparison.OrdinalIgnoreCase))).ToList();
+                allMovies = allMovies.Where(m => !m.Categories.Any(c => c.Name.Equals("18+", StringComparison.OrdinalIgnoreCase))).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                allSeries = allSeries.Where(s => s.Categories.Any(c => c.Name.Equals(category, StringComparison.OrdinalIgnoreCase))).ToList();
+                allMovies = allMovies.Where(m => m.Categories.Any(c => c.Name.Equals(category, StringComparison.OrdinalIgnoreCase))).ToList();
+            }
+
+            var allRows = allSeries.Select(s => new MediaRow { Item = s, ItemType = "Series" })
+                          .Concat(allMovies.Select(m => new MediaRow { Item = m, ItemType = "Movie" }))
+                          .ToList();
+
+            ViewBag.CategoryName = string.IsNullOrEmpty(category) ? "All Content" : category;
+            ViewBag.TotalCount = allRows.Count;
+
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userProfiles = _profileRepo.FindAll(p => p.AppUserId == userId).ToList();
+                ViewBag.UserProfiles = userProfiles;
+                ViewBag.ActiveProfileId = activeProfileId;
+            }
+
+            return View(allRows);
+        }
     }
 }
