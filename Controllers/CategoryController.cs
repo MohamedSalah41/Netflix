@@ -53,7 +53,7 @@ namespace Netflix_clone.Controllers
 
 		public async Task<IActionResult> Index()
 		{
-			var categories = await _db.Categories.OrderBy(c => c.Name).ToListAsync();
+			var categories = (await _categoryRepo.GetAllAsync()).OrderBy(c => c.Name).ToList();
 			return View(categories);
 		}
 
@@ -71,8 +71,8 @@ namespace Netflix_clone.Controllers
 			if (!ModelState.IsValid)
 				return View(category);
 
-			_db.Categories.Add(category);
-			await _db.SaveChangesAsync();
+			_categoryRepo.Add(category);
+			await _categoryRepo.SaveAsync();
 
 			TempData["Success"] = "Category added successfully.";
 			return RedirectToAction(nameof(Index));
@@ -81,7 +81,7 @@ namespace Netflix_clone.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Update(int id)
 		{
-			var category = await _db.Categories.FindAsync(id);
+			var category = await _categoryRepo.GetByIdAsync(id);
 			if (category == null)
 				return NotFound();
 			return View(category);
@@ -98,8 +98,8 @@ namespace Netflix_clone.Controllers
 			if (!ModelState.IsValid)
 				return View(category);
 
-			_db.Categories.Update(category);
-			await _db.SaveChangesAsync();
+			_categoryRepo.Update(category);
+			await _categoryRepo.SaveAsync();
 
 			TempData["Success"] = "Category updated successfully.";
 			return RedirectToAction(nameof(Index));
@@ -108,7 +108,7 @@ namespace Netflix_clone.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Delete(int id)
 		{
-			var category = await _db.Categories.FindAsync(id);
+			var category = await _categoryRepo.GetByIdAsync(id);
 
 			if (category == null)
 				return NotFound();
@@ -121,11 +121,11 @@ namespace Netflix_clone.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> DeleteConfirmed(int id)
 		{
-			var category = await _db.Categories.FindAsync(id);
+			var category = await _categoryRepo.GetByIdAsync(id);
 			if (category == null)
 				return NotFound();
-			_db.Categories.Remove(category);
-			await _db.SaveChangesAsync();
+			_categoryRepo.Delete(category);
+			await _categoryRepo.SaveAsync();
 			TempData["Success"] = "Category deleted successfully.";
 			return RedirectToAction(nameof(Index));
 		}

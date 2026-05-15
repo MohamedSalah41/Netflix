@@ -2,18 +2,34 @@ using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
+using Netflix_clone.Repositories;
 
 namespace Netflix_clone.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly NetflixContext _db;
+        private readonly IGenericRepository<Series> _seriesRepo;
+        private readonly IGenericRepository<Movie> _movieRepo;
+        private readonly IGenericRepository<Episode> _episodeRepo;
+        private readonly IGenericRepository<Profile> _profileRepo;
+        private readonly IGenericRepository<WatchHistory> _historyRepo;
+        private readonly IGenericRepository<Subscription> _subscriptionRepo;
 
-        public HomeController(NetflixContext db)
+        public HomeController(
+            IGenericRepository<Series> seriesRepo,
+            IGenericRepository<Movie> movieRepo,
+            IGenericRepository<Episode> episodeRepo,
+            IGenericRepository<Profile> profileRepo,
+            IGenericRepository<WatchHistory> historyRepo,
+            IGenericRepository<Subscription> subscriptionRepo)
         {
-            _db = db;
+            _seriesRepo = seriesRepo;
+            _movieRepo = movieRepo;
+            _episodeRepo = episodeRepo;
+            _profileRepo = profileRepo;
+            _historyRepo = historyRepo;
+            _subscriptionRepo = subscriptionRepo;
         }
 
         private static readonly string[] AgeRatings = { "G", "PG", "PG-13", "TV-14", "TV-MA", "R" };
@@ -72,8 +88,7 @@ namespace Netflix_clone.Controllers
             if (User.Identity?.IsAuthenticated == true)
             {
                 var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var hasSub = _db.Subscriptions
-                    .Any(s => s.AppUserId == uid && s.Status == Netflix_clone.Models.SubscriptionStatus.Active);
+                var hasSub = _subscriptionRepo.FindAll(s => s.AppUserId == uid && s.Status == SubscriptionStatus.Active).Any();
                 if (!hasSub)
                     return RedirectToAction("Plans", "Payment");
             }
@@ -83,12 +98,12 @@ namespace Netflix_clone.Controllers
             bool isKid = false;
             if (activeProfileId.HasValue)
             {
-                var activeProfile = _db.Profiles.Find(activeProfileId.Value);
+                var activeProfile = _profileRepo.GetById(activeProfileId.Value);
                 isKid = activeProfile?.IsKid ?? false;
             }
 
-            var allSeries = _db.Series.Include(s => s.Categories).ToList();
-            var allMovies = _db.Movies.Include(m => m.Categories).ToList();
+            var allSeries = _seriesRepo.GetAllWithIncludes(s => s.Categories).ToList();
+            var allMovies = _movieRepo.GetAllWithIncludes(m => m.Categories).ToList();
 
             if (isKid)
             {
@@ -147,35 +162,33 @@ namespace Netflix_clone.Controllers
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                IQueryable<WatchHistory> historyQuery;
+                IEnumerable<WatchHistory> histories;
 
                 if (activeProfileId.HasValue)
                 {
-                    historyQuery = _db.WatchHistory
-                        .Where(w => w.ProfileId == activeProfileId.Value && !w.IsFinished);
+                    histories = _historyRepo.FindAll(w => w.ProfileId == activeProfileId.Value && !w.IsFinished)
+                        .OrderByDescending(w => w.LastWatchedUtc)
+                        .Take(10)
+                        .ToList();
                 }
                 else
                 {
-                    var profileIds = _db.Profiles
-                        .Where(p => p.AppUserId == userId)
+                    var profileIds = _profileRepo.FindAll(p => p.AppUserId == userId)
                         .Select(p => p.Id)
                         .ToList();
 
-                    historyQuery = _db.WatchHistory
-                        .Where(w => w.ProfileId != null && profileIds.Contains(w.ProfileId.Value) && !w.IsFinished);
+                    histories = _historyRepo.FindAll(w => w.ProfileId != null && profileIds.Contains(w.ProfileId.Value) && !w.IsFinished)
+                        .OrderByDescending(w => w.LastWatchedUtc)
+                        .Take(10)
+                        .ToList();
                 }
-
-                var histories = historyQuery
-                    .OrderByDescending(w => w.LastWatchedUtc)
-                    .Take(10)
-                    .ToList();
 
                 foreach (var h in histories)
                 {
                     if (h.MediaItemId == null) continue;
 
-                    Movie? movie = _db.Movies.Find(h.MediaItemId);
-                    Episode? episode = movie == null ? _db.Episodes.Find(h.MediaItemId) : null;
+                    Movie? movie = _movieRepo.GetById(h.MediaItemId.Value);
+                    Episode? episode = movie == null ? _episodeRepo.GetById(h.MediaItemId.Value) : null;
                     BaseItem? item = (BaseItem?)movie ?? episode;
 
                     if (item == null) continue;
@@ -194,9 +207,7 @@ namespace Netflix_clone.Controllers
                     });
                 }
 
-                var userProfiles = _db.Profiles
-                    .Where(p => p.AppUserId == userId)
-                    .ToList();
+                var userProfiles = _profileRepo.FindAll(p => p.AppUserId == userId).ToList();
 
                 ViewBag.UserProfiles    = userProfiles;
                 ViewBag.ActiveProfileId = activeProfileId;
