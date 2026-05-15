@@ -8,6 +8,7 @@ public class HomeViewModel
     public int HeroYear { get; set; }
     public string HeroDescription { get; set; } = string.Empty;
     public string HeroAgeRating { get; set; } = string.Empty;
+    public string HeroTrailerUrl { get; set; } = string.Empty;
 
     public IEnumerable<MediaRow> ForYouItems { get; set; } = new List<MediaRow>();
     public IEnumerable<ContinueWatchingItem> ContinueWatching { get; set; } = new List<ContinueWatchingItem>();

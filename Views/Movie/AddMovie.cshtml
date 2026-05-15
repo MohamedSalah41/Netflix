@@ -272,6 +272,12 @@
                 </div>
 
                 <div class="form-field">
+                    <label asp-for="TrailerUrl" class="form-label"></label>
+                    <input asp-for="TrailerUrl" class="form-input" placeholder="https://youtu.be/pvKkBUM3Dyc" />
+                    <span asp-validation-for="TrailerUrl" class="form-field-error"></span>
+                </div>
+
+                <div class="form-field">
                     <label asp-for="DurationSeconds" class="form-label"></label>
                     <input asp-for="DurationSeconds" class="form-input" type="time" step="1" />
                     <span asp-validation-for="DurationSeconds" class="form-field-error"></span>

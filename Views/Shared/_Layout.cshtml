@@ -231,6 +231,82 @@
         .search__input::placeholder { color: #b3b3b3; }
         .search__input:focus { border-color: #ffffff; }
 
+        .search__results {
+            position: absolute; top: calc(100% + 12px); right: 0;
+            width: 420px; max-height: 500px;
+            background: rgba(20,20,20,0.97);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow-y: auto;
+            opacity: 0; pointer-events: none;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out, visibility 0.2s;
+            visibility: hidden;
+            z-index: 1001;
+        }
+        .search.open .search__results.show {
+            opacity: 1; pointer-events: all; transform: translateY(0); visibility: visible;
+        }
+        .search__results-header {
+            padding: var(--sp-4) var(--sp-5);
+            font-size: 13px; font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+            text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .search__result-item {
+            display: flex; align-items: center; gap: var(--sp-3);
+            padding: var(--sp-3) var(--sp-5);
+            transition: background 0.2s ease;
+            text-decoration: none; color: inherit;
+        }
+        .search__result-item:hover { background: var(--bg-elevated); }
+        .search__result-poster {
+            width: 60px; height: 90px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            background: var(--bg-elevated);
+            flex-shrink: 0;
+        }
+        .search__result-poster-placeholder {
+            width: 60px; height: 90px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .search__result-info { flex: 1; min-width: 0; }
+        .search__result-title {
+            font-size: 14px; font-weight: 600; color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .search__result-meta {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 12px; color: var(--text-muted);
+        }
+        .search__result-type {
+            padding: 2px 6px; border-radius: var(--radius-sm);
+            background: rgba(229,9,20,0.15); color: var(--brand);
+            font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .search__result-rating {
+            display: flex; align-items: center; gap: 3px;
+        }
+        .search__no-results {
+            padding: var(--sp-8) var(--sp-5);
+            text-align: center; color: var(--text-muted);
+            font-size: 13px;
+        }
+        .search__loading {
+            padding: var(--sp-8) var(--sp-5);
+            text-align: center; color: var(--text-muted);
+            font-size: 13px;
+        }
+
         /*  Icon buttons  */
         .icon-btn {
             position: relative;
@@ -598,6 +674,10 @@
                                aria-label="Search"
                                autocomplete="off" />
                     </div>
+                    <div class="search__results" id="searchResults">
+                        <div class="search__results-header">Search Results</div>
+                        <div id="searchResultsContent"></div>
+                    </div>
                 </div>
 
                 <div class="notif-wrap" id="dd-notif">
@@ -932,9 +1012,12 @@
             var wrap   = document.getElementById('searchWrap');
             var toggle = document.getElementById('searchToggle');
             var input  = document.getElementById('searchInput');
-            if (!wrap || !toggle || !input) return;
+            var resultsPanel = document.getElementById('searchResults');
+            var resultsContent = document.getElementById('searchResultsContent');
+            if (!wrap || !toggle || !input || !resultsPanel || !resultsContent) return;
 
             var autoCloseTimer = null;
+            var searchTimer = null;
 
             toggle.addEventListener('click', function (e) {
                 e.stopPropagation();
@@ -944,6 +1027,9 @@
                     setTimeout(function () { input.focus(); }, 350);
                 } else {
                     clearTimeout(autoCloseTimer);
+                    resultsPanel.classList.remove('show');
+                    input.value = '';
+                    resultsContent.innerHTML = '';
                 }
             });
 
@@ -953,17 +1039,69 @@
                     toggle.setAttribute('aria-expanded', 'false');
                     toggle.focus();
                     clearTimeout(autoCloseTimer);
+                    clearTimeout(searchTimer);
+                    resultsPanel.classList.remove('show');
+                    input.value = '';
+                    resultsContent.innerHTML = '';
                 }
             });
 
             input.addEventListener('input', function () {
                 clearTimeout(autoCloseTimer);
-                if (input.value === '') {
+                clearTimeout(searchTimer);
+                
+                var query = input.value.trim();
+                
+                if (query === '') {
+                    resultsPanel.classList.remove('show');
+                    resultsContent.innerHTML = '';
                     autoCloseTimer = setTimeout(function () {
                         wrap.classList.remove('open');
                         toggle.setAttribute('aria-expanded', 'false');
                     }, 3000);
+                    return;
                 }
+
+                resultsContent.innerHTML = '<div class="search__loading">Searching...</div>';
+                resultsPanel.classList.add('show');
+
+                searchTimer = setTimeout(function () {
+                    fetch('/Home/Search?q=' + encodeURIComponent(query))
+                        .then(function (response) { return response.json(); })
+                        .then(function (data) {
+                            if (!data.results || data.results.length === 0) {
+                                resultsContent.innerHTML = '<div class="search__no-results">No results found for "' + query + '"</div>';
+                                return;
+                            }
+
+                            var html = '';
+                            data.results.forEach(function (item) {
+                                var posterHtml = item.poster 
+                                    ? '<img class="search__result-poster" src="' + item.poster + '" alt="' + item.name + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" /><div class="search__result-poster-placeholder" style="display:none">🎬</div>'
+                                    : '<div class="search__result-poster-placeholder">🎬</div>';
+                                
+                                html += '<a href="' + item.url + '" class="search__result-item">' +
+                                    posterHtml +
+                                    '<div class="search__result-info">' +
+                                        '<div class="search__result-title">' + item.name + '</div>' +
+                                        '<div class="search__result-meta">' +
+                                            '<span class="search__result-type">' + item.type + '</span>' +
+                                            '<span class="search__result-rating">' +
+                                                '<svg width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' +
+                                                item.rating.toFixed(1) +
+                                            '</span>' +
+                                            '<span>' + item.year + '</span>' +
+                                        '</div>' +
+                                    '</div>' +
+                                '</a>';
+                            });
+                            resultsContent.innerHTML = html;
+                        })
+                        .catch(function (error) {
+                            console.error('Search error:', error);
+                            resultsContent.innerHTML = '<div class="search__no-results">Error performing search</div>';
+                        });
+                }, 300);
             });
 
             document.addEventListener('click', function (e) {
@@ -971,6 +1109,8 @@
                     wrap.classList.remove('open');
                     toggle.setAttribute('aria-expanded', 'false');
                     clearTimeout(autoCloseTimer);
+                    clearTimeout(searchTimer);
+                    resultsPanel.classList.remove('show');
                 }
             });
         })();

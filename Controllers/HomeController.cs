@@ -106,6 +106,15 @@ namespace Netflix_clone.Controllers
             string heroItemType = heroRow?.ItemType ?? string.Empty;
             int heroYear = heroRow != null ? GetYear(heroRow.Item) : DateTime.Now.Year;
             string heroAgeRating = heroRow != null ? GetAgeRating(heroRow.Item) : string.Empty;
+            string heroTrailerUrl = string.Empty;
+            
+            if (heroRow?.Item != null)
+            {
+                if (heroRow.Item is GeneralSeries gs)
+                    heroTrailerUrl = gs.TrailerUrl ?? string.Empty;
+                else if (heroRow.Item is MediaItem mi)
+                    heroTrailerUrl = mi.TrailerUrl ?? string.Empty;
+            }
 
             var forYou = allRows.OrderBy(_ => Guid.NewGuid()).Take(15).ToList();
             var trending = allRows.OrderByDescending(r => r.Item.Rating).Take(15).ToList();
@@ -201,6 +210,7 @@ namespace Netflix_clone.Controllers
                 HeroYear              = heroYear,
                 HeroDescription       = heroRow?.Item.Description ?? string.Empty,
                 HeroAgeRating         = heroAgeRating,
+                HeroTrailerUrl        = heroTrailerUrl,
                 ForYouItems           = forYou,
                 ContinueWatching      = continueWatching,
                 TrendingNow           = trending,
@@ -232,6 +242,69 @@ namespace Netflix_clone.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        [HttpGet]
+        public IActionResult Search(string q)
+        {
+            if (string.IsNullOrWhiteSpace(q))
+            {
+                return Json(new { results = new List<object>() });
+            }
+
+            var query = q.Trim().ToLower();
+
+            var activeProfileId = HttpContext.Session.GetInt32("ActiveProfileId");
+            bool isKid = false;
+            if (activeProfileId.HasValue)
+            {
+                var activeProfile = _db.Profiles.Find(activeProfileId.Value);
+                isKid = activeProfile?.IsKid ?? false;
+            }
+
+            var movies = _db.Movies
+                .Include(m => m.Categories)
+                .Where(m => m.Name.ToLower().Contains(query) || m.Description.ToLower().Contains(query))
+                .Take(10)
+                .ToList();
+
+            var series = _db.Series
+                .Include(s => s.Categories)
+                .Where(s => s.Name.ToLower().Contains(query) || s.Description.ToLower().Contains(query))
+                .Take(10)
+                .ToList();
+
+            if (isKid)
+            {
+                movies = movies.Where(m => !m.Categories.Any(c => c.Name.Equals("18+", StringComparison.OrdinalIgnoreCase))).ToList();
+                series = series.Where(s => !s.Categories.Any(c => c.Name.Equals("18+", StringComparison.OrdinalIgnoreCase))).ToList();
+            }
+
+            var results = movies.Select(m => new
+            {
+                id = m.Id,
+                name = m.Name,
+                type = "Movie",
+                poster = m.Poster,
+                rating = m.Rating,
+                year = GetYear(m),
+                url = Url.Action("Details", "Movie", new { id = m.Id })
+            })
+            .Concat(series.Select(s => new
+            {
+                id = s.Id,
+                name = s.Name,
+                type = "Series",
+                poster = s.Poster,
+                rating = s.Rating,
+                year = GetYear(s),
+                url = Url.Action("GetSeriesById", "Series", new { id = s.Id })
+            }))
+            .OrderByDescending(r => r.rating)
+            .Take(8)
+            .ToList();
+
+            return Json(new { results });
         }
     }
 }

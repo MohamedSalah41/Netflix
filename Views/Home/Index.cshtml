@@ -700,9 +700,7 @@
     <section class="hero">
         @if (Model?.HeroItem != null)
         {
-            <div class="hero__bg" id="heroBg"
-                 style="background-image: url('@(string.IsNullOrWhiteSpace(Model.HeroItem.Poster) ? "" : Model.HeroItem.Poster)')">
-            </div>
+            @await Html.PartialAsync("_HeroTrailer", (Model.HeroTrailerUrl ?? string.Empty, Model.HeroItem.Poster ?? string.Empty, Model.HeroItem.Name ?? string.Empty))
         }
         else
         {

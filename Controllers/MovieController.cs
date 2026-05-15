@@ -123,6 +123,7 @@ namespace Netflix_clone.Controllers
                 existing.Description     = DBMovie.Description;
                 existing.Poster          = DBMovie.Poster;
                 existing.VideoUrl        = DBMovie.VideoUrl;
+                existing.TrailerUrl      = DBMovie.TrailerUrl;
                 existing.DurationSeconds = DBMovie.DurationSeconds;
                 existing.Rating          = DBMovie.Rating;
 
