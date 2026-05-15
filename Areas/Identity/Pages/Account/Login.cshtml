@@ -6,6 +6,59 @@
 }
 
 <partial name="_MovieFormStyle" />
+<style>
+    .google-btn {
+        width: 100%;
+        height: 52px;
+        border-radius: 16px;
+        border: 1px solid var(--border-medium);
+        background: var(--bg-surface);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        cursor: pointer;
+        transition: 0.25s;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+        .google-btn:hover {
+            transform: translateY(-2px);
+            background: var(--bg-elevated);
+            border-color: #4285F4;
+            box-shadow: 0 10px 25px rgba(66,133,244,.15);
+        }
+
+        .google-btn svg {
+            flex-shrink: 0;
+        }
+
+    .auth-divider {
+        position: relative;
+        text-align: center;
+        margin: 24px 0;
+    }
+
+        .auth-divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-medium);
+        }
+
+        .auth-divider span {
+            position: relative;
+            background: var(--bg-surface);
+            padding: 0 14px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+</style>
 
 <div class="form-page">
     <a asp-page="/Index" asp-area="" class="form-back">
@@ -56,6 +109,9 @@
                 </button>
             </div>
         </form>
+        <div class="auth-divider">
+            <span>OR</span>
+        </div>
 
         @if (Model.ExternalLogins?.Count > 0)
         {
@@ -65,8 +121,33 @@
                     <div style="display:flex;flex-direction:column;gap:8px;">
                         @foreach (var provider in Model.ExternalLogins)
                         {
-                            <button type="submit" name="provider" value="@provider.Name" class="btn-submit" style="background:transparent;border:1px solid var(--border);color:var(--text);">
-                                Sign in with @provider.DisplayName
+                            <button type="submit"
+                                    name="provider"
+                                    value="@provider.Name"
+                                    class="google-btn">
+
+                                <svg width="20"
+                                     height="20"
+                                     viewBox="0 0 48 48">
+
+                                    <path fill="#EA4335"
+                                          d="M24 9.5c3.54 0 6.69 1.22 9.18 3.6l6.85-6.85C35.9 2.38 30.4 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+
+                                    <path fill="#4285F4"
+                                          d="M46.5 24.5c0-1.64-.15-3.22-.43-4.74H24v9h12.7c-.55 2.96-2.2 5.46-4.7 7.14l7.27 5.64C43.94 37.2 46.5 31.4 46.5 24.5z" />
+
+                                    <path fill="#FBBC05"
+                                          d="M10.54 28.41A14.48 14.48 0 0 1 9.5 24c0-1.53.26-3 .72-4.41l-7.98-6.19A23.93 23.93 0 0 0 0 24c0 3.86.92 7.5 2.56 10.6l7.98-6.19z" />
+
+                                    <path fill="#34A853"
+                                          d="M24 48c6.48 0 11.92-2.13 15.9-5.81l-7.27-5.64c-2.02 1.36-4.6 2.17-8.63 2.17-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+
+                                </svg>
+
+                                <span>
+                                    Sign in with Google
+                                </span>
+
                             </button>
                         }
                     </div>
