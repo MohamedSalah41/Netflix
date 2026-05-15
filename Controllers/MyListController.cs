@@ -2,24 +2,24 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Netflix_clone.Models;
+using Netflix_clone.Repositories;
 
 namespace Netflix_clone.Controllers;
 
 [Authorize]
 public class MyListController : Controller
 {
-    private readonly NetflixContext _db;
+    private readonly IGenericRepository<MyListItem> _myListRepo;
 
-    public MyListController(NetflixContext db)
+    public MyListController(IGenericRepository<MyListItem> myListRepo)
     {
-        _db = db;
+        _myListRepo = myListRepo;
     }
 
     public IActionResult Index()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var items  = _db.MyListItems
-            .Where(m => m.AppUserId == userId)
+        var items  = _myListRepo.FindAll(m => m.AppUserId == userId)
             .OrderByDescending(m => m.AddedUtc)
             .ToList();
         return View(items);
@@ -30,17 +30,16 @@ public class MyListController : Controller
     public IActionResult Toggle(int mediaId, string mediaType, string mediaName, string? mediaPoster)
     {
         var userId  = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var existing = _db.MyListItems
-            .FirstOrDefault(m => m.AppUserId == userId && m.MediaId == mediaId && m.MediaType == mediaType);
+        var existing = _myListRepo.Find(m => m.AppUserId == userId && m.MediaId == mediaId && m.MediaType == mediaType);
 
         if (existing is not null)
         {
-            _db.MyListItems.Remove(existing);
-            _db.SaveChanges();
+            _myListRepo.Delete(existing);
+            _myListRepo.Save();
             return Json(new { inList = false });
         }
 
-        _db.MyListItems.Add(new MyListItem
+        _myListRepo.Add(new MyListItem
         {
             AppUserId   = userId,
             MediaId     = mediaId,
@@ -49,7 +48,7 @@ public class MyListController : Controller
             MediaPoster = mediaPoster,
             AddedUtc    = DateTime.UtcNow
         });
-        _db.SaveChanges();
+        _myListRepo.Save();
         return Json(new { inList = true });
     }
 
@@ -57,8 +56,7 @@ public class MyListController : Controller
     public IActionResult Status(int mediaId, string mediaType)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var inList = _db.MyListItems
-            .Any(m => m.AppUserId == userId && m.MediaId == mediaId && m.MediaType == mediaType);
+        var inList = _myListRepo.FindAll(m => m.AppUserId == userId && m.MediaId == mediaId && m.MediaType == mediaType).Any();
         return Json(new { inList });
     }
 }

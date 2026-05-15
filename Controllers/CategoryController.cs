@@ -1,22 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Netflix_clone.Models;
-using Microsoft.EntityFrameworkCore;
+using Netflix_clone.Repositories;
 
 namespace Netflix_clone.Controllers
 {
 	
 	public class CategoryController : Controller
 	{
-		private readonly NetflixContext _context;
-		public CategoryController(NetflixContext context)
+		private readonly IGenericRepository<Category> _categoryRepo;
+		public CategoryController(IGenericRepository<Category> categoryRepo)
 		{
-			_context = context;
+			_categoryRepo = categoryRepo;
 		}
 
 		public async Task<IActionResult> Index()
 		{
-			var categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
+			var categories = (await _categoryRepo.GetAllAsync()).OrderBy(c => c.Name).ToList();
 			return View(categories);
 
 		}
@@ -36,8 +36,8 @@ namespace Netflix_clone.Controllers
 			if (!ModelState.IsValid)
 				return View(category);
 
-			_context.Categories.Add(category);
-			await _context.SaveChangesAsync();
+			_categoryRepo.Add(category);
+			await _categoryRepo.SaveAsync();
 
 			TempData["Success"] = "Category added successfully.";
 			return RedirectToAction(nameof(Index));
@@ -46,7 +46,7 @@ namespace Netflix_clone.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Update(int id)
 		{
-			var category = await _context.Categories.FindAsync(id);
+			var category = await _categoryRepo.GetByIdAsync(id);
 			if (category == null)
 				return NotFound();
 			return View(category);
@@ -63,8 +63,8 @@ namespace Netflix_clone.Controllers
 			if (!ModelState.IsValid)
 				return View(category);
 
-			_context.Categories.Update(category);
-			await _context.SaveChangesAsync();
+			_categoryRepo.Update(category);
+			await _categoryRepo.SaveAsync();
 
 			TempData["Success"] = "Category updated successfully.";
 			return RedirectToAction(nameof(Index));
@@ -72,7 +72,7 @@ namespace Netflix_clone.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Delete(int id)
 		{
-			var category = await _context.Categories.FindAsync(id);
+			var category = await _categoryRepo.GetByIdAsync(id);
 
 			if (category == null)
 				return NotFound();
@@ -85,11 +85,11 @@ namespace Netflix_clone.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> DeleteConfirmed(int id)
 		{
-			var category = await _context.Categories.FindAsync(id);
+			var category = await _categoryRepo.GetByIdAsync(id);
 			if (category == null)
 				return NotFound();
-			_context.Categories.Remove(category);
-			await _context.SaveChangesAsync();
+			_categoryRepo.Delete(category);
+			await _categoryRepo.SaveAsync();
 			TempData["Success"] = "Category deleted successfully.";
 			return RedirectToAction(nameof(Index));
 		}

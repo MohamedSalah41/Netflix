@@ -438,14 +438,15 @@
             .search__input-wrap {
                 display   : flex;
                 align-items: center;
-                max-width : 0;            /* collapsed: width = 0 */
+                gap       : 8px;
+                max-width : 0;
                 overflow  : hidden;
                 transition: max-width 350ms var(--ease-out),
                             opacity 300ms var(--ease-out);
                 opacity   : 0;
             }
             .search.open .search__input-wrap {
-                max-width : 260px;       /* expanded width */
+                max-width : 320px;
                 opacity   : 1;
             }
 
@@ -463,6 +464,22 @@
             }
             .search__input::placeholder { color: var(--text-muted); }
             .search__input:focus { border-color: var(--brand); }
+
+            .search__submit-btn {
+                width       : 32px;
+                height      : 32px;
+                border-radius: var(--radius-full);
+                background  : var(--brand);
+                color       : #fff;
+                display     : flex;
+                align-items : center;
+                justify-content: center;
+                flex-shrink : 0;
+                transition  : background var(--duration);
+            }
+            .search__submit-btn:hover {
+                background  : var(--brand-hover);
+            }
 
             /* ══════════════════════════════════════════════════════════
                6. ICON BUTTONS (Bell, etc.)
@@ -1057,7 +1074,7 @@
                     @* Render each category from the mock array as a link *@
                     @foreach (var cat in navCategories)
                     {
-                        <a href="/Browse?category=@cat.ToLower()" class="nav-browse__category" role="menuitem">
+                        <a href="/Home/Browse?category=@cat.ToLower()" class="nav-browse__category" role="menuitem">
                             @cat
                         </a>
                     }
@@ -1089,6 +1106,16 @@
                                placeholder="Search movies, series…"
                                aria-label="Search"
                                autocomplete="off" />
+                        <button class="search__submit-btn"
+                                id="searchSubmitBtn"
+                                aria-label="Submit search"
+                                title="Search">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -1519,6 +1546,7 @@
                 const wrap    = document.getElementById('searchWrap');
                 const toggle  = document.getElementById('searchToggle');
                 const input   = document.getElementById('searchInput');
+                const submitBtn = document.getElementById('searchSubmitBtn');
 
                 if (!wrap || !toggle || !input) return;
 
@@ -1527,22 +1555,30 @@
                     const isOpen = wrap.classList.toggle('open');
                     toggle.setAttribute('aria-expanded', String(isOpen));
 
-                    // Focus the input field automatically when it expands
                     if (isOpen) {
-                        setTimeout(function () { input.focus(); }, 300); // wait for animation
+                        setTimeout(function () { input.focus(); }, 300);
                     }
                 });
 
-                // Collapse when user presses Escape inside the input
                 input.addEventListener('keydown', function (e) {
                     if (e.key === 'Escape') {
                         wrap.classList.remove('open');
                         toggle.setAttribute('aria-expanded', 'false');
-                        toggle.focus();  // return focus to the toggle button
+                        toggle.focus();
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        performSearch();
                     }
                 });
 
-                // Collapse when clicking anywhere outside the search widget
+                if (submitBtn) {
+                    submitBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        performSearch();
+                    });
+                }
+
                 document.addEventListener('click', function (e) {
                     if (!wrap.contains(e.target)) {
                         wrap.classList.remove('open');
@@ -1550,13 +1586,12 @@
                     }
                 });
 
-                // Live search: in a real app you would debounce this and call
-                // an API endpoint. Here we just log the value as a placeholder.
-                input.addEventListener('input', function () {
-                    console.log('[Search query]', input.value);
-                    // TODO: replace with actual search call, e.g.:
-                    // fetch('/Search?q=' + encodeURIComponent(input.value))
-                });
+                function performSearch() {
+                    const query = input.value.trim();
+                    if (query) {
+                        window.location.href = '/Search/Index?query=' + encodeURIComponent(query);
+                    }
+                }
             })();
 
 

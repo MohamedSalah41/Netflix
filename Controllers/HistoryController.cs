@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Netflix_clone.Models;
+using Netflix_clone.Repositories;
 
 namespace Netflix_clone.Controllers;
 
@@ -10,11 +11,11 @@ namespace Netflix_clone.Controllers;
 [Authorize]
 public class HistoryController : ControllerBase
 {
-    private readonly NetflixContext _db;
+    private readonly IGenericRepository<WatchHistory> _historyRepo;
 
-    public HistoryController(NetflixContext db)
+    public HistoryController(IGenericRepository<WatchHistory> historyRepo)
     {
-        _db = db;
+        _historyRepo = historyRepo;
     }
 
     [HttpPost("update")]
@@ -24,8 +25,7 @@ public class HistoryController : ControllerBase
         if (profileId == null)
             return Ok(new { saved = false });
 
-        var entry = _db.WatchHistory
-            .FirstOrDefault(w => w.ProfileId == profileId && w.MediaItemId == dto.ContentId);
+        var entry = _historyRepo.Find(w => w.ProfileId == profileId && w.MediaItemId == dto.ContentId);
 
         if (entry == null)
         {
@@ -37,7 +37,7 @@ public class HistoryController : ControllerBase
                 LastWatchedUtc = DateTime.UtcNow,
                 IsFinished     = false
             };
-            _db.WatchHistory.Add(entry);
+            _historyRepo.Add(entry);
         }
         else
         {
@@ -45,7 +45,7 @@ public class HistoryController : ControllerBase
             entry.LastWatchedUtc = DateTime.UtcNow;
         }
 
-        _db.SaveChanges();
+        _historyRepo.Save();
         return Ok(new { saved = true });
     }
 
@@ -56,8 +56,7 @@ public class HistoryController : ControllerBase
         if (profileId == null)
             return Ok(new { watchedSeconds = 0, isFinished = false });
 
-        var entry = _db.WatchHistory
-            .FirstOrDefault(w => w.ProfileId == profileId && w.MediaItemId == contentId);
+        var entry = _historyRepo.Find(w => w.ProfileId == profileId && w.MediaItemId == contentId);
 
         if (entry == null)
             return Ok(new { watchedSeconds = 0, isFinished = false });
