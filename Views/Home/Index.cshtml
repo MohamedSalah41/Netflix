@@ -396,6 +396,54 @@
         gap            : 10px;
     }
 
+    /* ── TOP 10 ROW ───────────────────────────────────────────────── */
+    .top10-item {
+        flex-shrink    : 0;
+        display        : flex;
+        align-items    : flex-end;
+        cursor         : pointer;
+        scroll-snap-align: start;
+        transition     : transform 250ms var(--ease-spring);
+    }
+    .top10-item:hover { transform: scale(1.04) translateY(-4px); }
+    .top10-rank {
+        font-family    : var(--font-display);
+        font-size      : clamp(80px, 12vw, 140px);
+        line-height    : 1;
+        font-weight    : 900;
+        -webkit-text-stroke: 3px var(--text-muted);
+        -webkit-text-fill-color: transparent;
+        color          : var(--text-muted);
+        user-select    : none;
+        flex-shrink    : 0;
+    }
+    .top10-poster-wrap {
+        position       : relative;
+        width          : 100px;
+        aspect-ratio   : 2/3;
+        border-radius  : var(--radius-md);
+        overflow       : hidden;
+        margin-left    : -28px;
+        border         : 1px solid var(--border-subtle);
+        flex-shrink    : 0;
+    }
+    .top10-poster-wrap img {
+        width          : 100%;
+        height         : 100%;
+        object-fit     : cover;
+        display        : block;
+    }
+    .top10-poster-placeholder {
+        width          : 100%;
+        height         : 100%;
+        background     : linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+        display        : flex;
+        align-items    : center;
+        justify-content: center;
+        font-size      : 24px;
+        color          : var(--text-muted);
+    }
+
     /* ── ANIMATIONS ───────────────────────────────────────────────── */
     @@keyframes bounce {
         0%, 100% { transform: translateY(0); }
@@ -697,6 +745,53 @@
             </button>
         </div>
     </section>
+
+    @* ── TOP 10 TODAY ────────────────────────────────────────────────── *@
+    @if (Model?.TrendingNow != null && Model.TrendingNow.Any())
+    {
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">Top 10 Today</h2>
+            </div>
+            <div class="scroll-rail-wrap">
+                <button class="rail-arrow rail-arrow--left" onclick="scrollRail(this,-1)" aria-label="Scroll left">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+                <div class="scroll-rail" id="rail-top10">
+                    @{ int top10Rank = 1; }
+                    @foreach (var row in Model.TrendingNow.Take(10))
+                    {
+                        string ctrl   = row.ItemType == "Movie" ? "Movie" : "Series";
+                        string action = row.ItemType == "Movie" ? "Details" : "GetSeriesById";
+                        <a asp-controller="@ctrl" asp-action="@action" asp-route-id="@row.Item.Id"
+                           class="top10-item" style="text-decoration:none;color:inherit">
+                            <span class="top10-rank">@top10Rank</span>
+                            <div class="top10-poster-wrap">
+                                @if (!string.IsNullOrWhiteSpace(row.Item.Poster))
+                                {
+                                    <img src="@row.Item.Poster" alt="@row.Item.Name"
+                                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+                                    <div class="top10-poster-placeholder" style="display:none">🎬</div>
+                                }
+                                else
+                                {
+                                    <div class="top10-poster-placeholder">🎬</div>
+                                }
+                            </div>
+                        </a>
+                        top10Rank++;
+                    }
+                </div>
+                <button class="rail-arrow rail-arrow--right" onclick="scrollRail(this,1)" aria-label="Scroll right">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                </button>
+            </div>
+        </section>
+    }
 
     @* ── NEW RELEASES ────────────────────────────────────────────────── *@
     <section class="content-section" style="padding-bottom:64px">

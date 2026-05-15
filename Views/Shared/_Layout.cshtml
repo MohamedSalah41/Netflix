@@ -43,15 +43,6 @@
     var activeProfileId = ViewBag.ActiveProfileId as int?;
     var profileColors  = new[] { "#e50914", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899" };
 
-    // ── Mock: navigation categories ─────────────────────────────────
-    // Shown in the "Browse" mega-dropdown. Real data comes from
-    // CategoryService or is passed via ViewBag from a BaseController.
-    var navCategories = new[]
-    {
-        "Action", "Drama", "Comedy", "Thriller", "Horror",
-        "Sci-Fi", "Romance", "Documentary", "Animation", "Crime"
-    };
-
     // ── Mock: notifications ──────────────────────────────────────────
     // Bell icon badge count + dropdown items.
     var notifications = new[]
@@ -1054,11 +1045,10 @@
                 </button>
 
                 <div class="nav-browse__panel" role="menu">
-                    @* Render each category from the mock array as a link *@
-                    @foreach (var cat in navCategories)
+                    @foreach (var cat in (ViewBag.NavCategories as List<Netflix_clone.Models.Category> ?? new List<Netflix_clone.Models.Category>()))
                     {
-                        <a href="/Browse?category=@cat.ToLower()" class="nav-browse__category" role="menuitem">
-                            @cat
+                        <a asp-controller="Category" asp-action="Browse" asp-route-name="@cat.Name" class="nav-browse__category" role="menuitem">
+                            @cat.Name
                         </a>
                     }
                 </div>
@@ -1275,9 +1265,9 @@
         <a href="/Browse/Series" class="mobile-menu__link @(activePage == "Series" ? "active" : "")">Series</a>
         <a href="/MyList" class="mobile-menu__link @(activePage == "My List" ? "active" : "")">My List</a>
         <div class="mobile-menu__divider" aria-hidden="true"></div>
-        @foreach (var cat in navCategories)
+        @foreach (var cat in (ViewBag.NavCategories as List<Netflix_clone.Models.Category> ?? new List<Netflix_clone.Models.Category>()))
         {
-            <a href="/Browse?category=@cat.ToLower()" class="mobile-menu__link">@cat</a>
+            <a asp-controller="Category" asp-action="Browse" asp-route-name="@cat.Name" class="mobile-menu__link">@cat.Name</a>
         }
         <div class="mobile-menu__divider" aria-hidden="true"></div>
         @if (!isAuthenticated)
@@ -1349,10 +1339,9 @@
                 <div>
                     <div class="footer__col-title">Genres</div>
                     <ul class="footer__links" role="list">
-                        @* Show first 5 categories only so the footer doesn't overflow *@
-                        @foreach (var cat in navCategories.Take(5))
+                        @foreach (var cat in (ViewBag.NavCategories as List<Netflix_clone.Models.Category> ?? new List<Netflix_clone.Models.Category>()).Take(5))
                         {
-                            <li><a href="/Browse?category=@cat.ToLower()" class="footer__link">@cat</a></li>
+                            <li><a asp-controller="Category" asp-action="Browse" asp-route-name="@cat.Name" class="footer__link">@cat.Name</a></li>
                         }
                     </ul>
                 </div>

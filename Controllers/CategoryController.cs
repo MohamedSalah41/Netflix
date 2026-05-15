@@ -1,16 +1,57 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
+using Netflix_clone.Repositories;
+using Netflix_clone.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace Netflix_clone.Controllers
 {
-	
 	public class CategoryController : Controller
 	{
+		private readonly IGenericRepository<Category> _categoryRepo;
+		private readonly NetflixContext _db;
+
+		public CategoryController(IGenericRepository<Category> categoryRepo, NetflixContext db)
 		private readonly NetflixContext _context;
 		public CategoryController(NetflixContext context)
 		{
+			_categoryRepo = categoryRepo;
+			_db = db;
+		}
+
+		public async Task<IActionResult> Browse(string name)
+		{
+			if (string.IsNullOrWhiteSpace(name))
+				return NotFound();
+
+			var category = await _db.Categories
+				.FirstOrDefaultAsync(c => c.Name == name);
+
+			if (category == null)
+				return NotFound();
+
+			var movies = await _db.Movies
+				.Include(m => m.Categories)
+				.Where(m => m.Categories.Any(c => c.Name == name))
+				.OrderBy(m => m.Name)
+				.ToListAsync();
+
+			var series = await _db.Series
+				.Include(s => s.Categories)
+				.Where(s => s.Categories.Any(c => c.Name == name))
+				.OrderBy(s => s.Name)
+				.ToListAsync();
+
+			var vm = new CategoryBrowseViewModel
+			{
+				CategoryName = category.Name,
+				Movies = movies,
+				Series = series
+			};
+
+			return View(vm);
 			_context = context;
 		}
 
