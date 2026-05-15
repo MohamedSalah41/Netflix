@@ -1074,7 +1074,7 @@
                     @* Render each category from the mock array as a link *@
                     @foreach (var cat in navCategories)
                     {
-                        <a href="/Browse?category=@cat.ToLower()" class="nav-browse__category" role="menuitem">
+                        <a href="/Home/Browse?category=@cat.ToLower()" class="nav-browse__category" role="menuitem">
                             @cat
                         </a>
                     }
