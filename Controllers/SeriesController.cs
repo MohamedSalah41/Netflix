@@ -1,16 +1,27 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
+using Netflix_clone.Repositories;
 
 namespace Netflix_clone.Controllers
 {
     public class SeriesController : Controller
     {
-        private readonly NetflixContext _netflixContext;
-        public SeriesController(NetflixContext netflixContext)
+        private readonly IGenericRepository<Series> _seriesRepo;
+        private readonly IGenericRepository<Category> _categoryRepo;
+        private readonly IGenericRepository<Actor> _actorRepo;
+        private readonly IGenericRepository<Profile> _profileRepo;
+
+        public SeriesController(
+            IGenericRepository<Series> seriesRepo,
+            IGenericRepository<Category> categoryRepo,
+            IGenericRepository<Actor> actorRepo,
+            IGenericRepository<Profile> profileRepo)
         {
-            _netflixContext = netflixContext;
+            _seriesRepo = seriesRepo;
+            _categoryRepo = categoryRepo;
+            _actorRepo = actorRepo;
+            _profileRepo = profileRepo;
         }
         public ActionResult GetAllSeries()
         {
@@ -18,11 +29,11 @@ namespace Netflix_clone.Controllers
             bool isKid = false;
             if (activeProfileId.HasValue)
             {
-                var profile = _netflixContext.Profiles.Find(activeProfileId.Value);
+                var profile = _profileRepo.GetById(activeProfileId.Value);
                 isKid = profile?.IsKid ?? false;
             }
 
-            var series = _netflixContext.Series.Include(s => s.Categories).ToList();
+            var series = _seriesRepo.GetAllWithIncludes(s => s.Categories).ToList();
 
             if (isKid)
                 series = series.Where(s => !s.Categories.Any(c => c.Name.Equals("18+", StringComparison.OrdinalIgnoreCase))).ToList();
@@ -30,26 +41,20 @@ namespace Netflix_clone.Controllers
             return View(series);
         }
 
-        // GET: SeriesController/Details/5
-
-
     public ActionResult GetSeriesById(int id)
         {
-            var series = _netflixContext.Series
-                .Include(s => s.Seasons)
-                    .ThenInclude(s => s.Episodes)
-                .Include(s => s.Actors)
-                .Include(s => s.Categories)
-                .FirstOrDefault(s => s.Id == id);
+            var series = _seriesRepo.GetByIdWithIncludes(id, 
+                s => s.Seasons, 
+                s => s.Actors, 
+                s => s.Categories);
 
             return View(series);
         }
 
-    // GET: SeriesController/Create
     public ActionResult AddSeries()
         {
-            ViewBag.Categories = _netflixContext.Categories.ToList();
-            ViewBag.Actors = _netflixContext.Actors.ToList();
+            ViewBag.Categories = _categoryRepo.GetAll();
+            ViewBag.Actors = _actorRepo.GetAll();
             return View();
         }
 
@@ -64,21 +69,12 @@ namespace Netflix_clone.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    // Actors
-                    var actors = _netflixContext.Actors
-                        .Where(a => actorIds.Contains(a.Id))
-                        .ToList();
-
+                    var actors = _actorRepo.FindAll(a => actorIds.Contains(a.Id)).ToList();
                     series.Actors = actors;
 
-                    // Categories
-                    var categories = _netflixContext.Categories
-                        .Where(c => categoryIds.Contains(c.Id))
-                        .ToList();
-
+                    var categories = _categoryRepo.FindAll(c => categoryIds.Contains(c.Id)).ToList();
                     series.Categories = categories;
 
-                    // Default Season
                     series.Seasons = new List<Season>
             {
                 new Season
@@ -89,22 +85,21 @@ namespace Netflix_clone.Controllers
                 }
             };
 
-                    _netflixContext.Series.Add(series);
-
-                    _netflixContext.SaveChanges();
+                    _seriesRepo.Add(series);
+                    _seriesRepo.Save();
 
                     return RedirectToAction(nameof(GetAllSeries));
                 }
 
-                ViewBag.Actors = _netflixContext.Actors.ToList();
-                ViewBag.Categories = _netflixContext.Categories.ToList();
+                ViewBag.Actors = _actorRepo.GetAll();
+                ViewBag.Categories = _categoryRepo.GetAll();
 
                 return View(series);
             }
             catch
             {
-                ViewBag.Actors = _netflixContext.Actors.ToList();
-                ViewBag.Categories = _netflixContext.Categories.ToList();
+                ViewBag.Actors = _actorRepo.GetAll();
+                ViewBag.Categories = _categoryRepo.GetAll();
 
                 return View(series);
             }
@@ -112,16 +107,13 @@ namespace Netflix_clone.Controllers
 
         public ActionResult UpdateSeries(int id)
         {
-            var series = _netflixContext.Series
-                .Include(s => s.Actors)
-                .Include(s => s.Categories)
-                .FirstOrDefault(s => s.Id == id);
+            var series = _seriesRepo.GetByIdWithIncludes(id, s => s.Actors, s => s.Categories);
 
             if (series == null)
                 return NotFound();
 
-            ViewBag.Actors              = _netflixContext.Actors.ToList();
-            ViewBag.Categories          = _netflixContext.Categories.ToList();
+            ViewBag.Actors              = _actorRepo.GetAll();
+            ViewBag.Categories          = _categoryRepo.GetAll();
             ViewBag.SelectedActorIds    = series.Actors.Select(a => a.Id).ToList();
             ViewBag.SelectedCategoryIds = series.Categories.Select(c => c.Id).ToList();
 
@@ -137,17 +129,14 @@ namespace Netflix_clone.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Actors              = _netflixContext.Actors.ToList();
-                ViewBag.Categories          = _netflixContext.Categories.ToList();
+                ViewBag.Actors              = _actorRepo.GetAll();
+                ViewBag.Categories          = _categoryRepo.GetAll();
                 ViewBag.SelectedActorIds    = actorIds;
                 ViewBag.SelectedCategoryIds = categoryIds;
                 return View(series);
             }
 
-            var existingSeries = _netflixContext.Series
-                .Include(s => s.Actors)
-                .Include(s => s.Categories)
-                .FirstOrDefault(s => s.Id == series.Id);
+            var existingSeries = _seriesRepo.GetByIdWithIncludes(series.Id, s => s.Actors, s => s.Categories);
 
             if (existingSeries == null)
                 return NotFound();
@@ -161,30 +150,26 @@ namespace Netflix_clone.Controllers
             existingSeries.Actors.Clear();
             existingSeries.Categories.Clear();
 
-            existingSeries.Actors = _netflixContext.Actors
-                .Where(a => actorIds.Contains(a.Id)).ToList();
-            existingSeries.Categories = _netflixContext.Categories
-                .Where(c => categoryIds.Contains(c.Id)).ToList();
+            existingSeries.Actors = _actorRepo.FindAll(a => actorIds.Contains(a.Id)).ToList();
+            existingSeries.Categories = _categoryRepo.FindAll(c => categoryIds.Contains(c.Id)).ToList();
 
-            _netflixContext.SaveChanges();
+            _seriesRepo.Save();
 
             return RedirectToAction(nameof(GetAllSeries));
         }
 
-        // GET: SeriesController/Delete/5
         public ActionResult DeleteSeries(int id)
         {
-            return View(_netflixContext.Series.FirstOrDefault(s => s.Id == id));
+            return View(_seriesRepo.GetById(id));
         }
 
-        // POST: SeriesController/Delete/5
         [HttpPost]
         public ActionResult DeleteSeries(int id, Series series)
         {
             try
             {
-                _netflixContext.Series.Remove(series);
-                _netflixContext.SaveChanges();
+                _seriesRepo.Delete(series);
+                _seriesRepo.Save();
                 return RedirectToAction(nameof(GetAllSeries));
             }
             catch
