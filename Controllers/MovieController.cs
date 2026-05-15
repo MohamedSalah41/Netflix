@@ -1,17 +1,27 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
+using Netflix_clone.Repositories;
 
 namespace Netflix_clone.Controllers
 {
     public class MovieController : Controller
     {
-        private readonly NetflixContext context;
+        private readonly IGenericRepository<Movie> _movieRepo;
+        private readonly IGenericRepository<Actor> _actorRepo;
+        private readonly IGenericRepository<Category> _categoryRepo;
+        private readonly IGenericRepository<Profile> _profileRepo;
 
-        public MovieController(NetflixContext context)
+        public MovieController(
+            IGenericRepository<Movie> movieRepo,
+            IGenericRepository<Actor> actorRepo,
+            IGenericRepository<Category> categoryRepo,
+            IGenericRepository<Profile> profileRepo)
         {
-            this.context = context;
+            _movieRepo = movieRepo;
+            _actorRepo = actorRepo;
+            _categoryRepo = categoryRepo;
+            _profileRepo = profileRepo;
         }
         public ActionResult GetAllMovies()
         {
@@ -19,11 +29,11 @@ namespace Netflix_clone.Controllers
             bool isKid = false;
             if (activeProfileId.HasValue)
             {
-                var profile = context.Profiles.Find(activeProfileId.Value);
+                var profile = _profileRepo.GetById(activeProfileId.Value);
                 isKid = profile?.IsKid ?? false;
             }
 
-            var movies = context.Movies.Include(m => m.Categories).ToList();
+            var movies = _movieRepo.GetAllWithIncludes(m => m.Categories).ToList();
 
             if (isKid)
                 movies = movies.Where(m => !m.Categories.Any(c => c.Name.Equals("18+", StringComparison.OrdinalIgnoreCase))).ToList();
@@ -31,20 +41,16 @@ namespace Netflix_clone.Controllers
             return View(movies);
         }
 
-        // GET: MovieController/Details/5
         public ActionResult Details(int id)
         {
-            var movie = context.Movies
-                .Include(m => m.Actors)
-                .Include(m => m.Categories)
-                .FirstOrDefault(m => m.Id == id);
+            var movie = _movieRepo.GetByIdWithIncludes(id, m => m.Actors, m => m.Categories);
             return View(movie);
         }
 
         public ActionResult AddMovie()
         {
-            ViewBag.Actors     = context.Actors.ToList();
-            ViewBag.Categories = context.Categories.ToList();
+            ViewBag.Actors     = _actorRepo.GetAll();
+            ViewBag.Categories = _categoryRepo.GetAll();
             return View();
         }
 
@@ -54,38 +60,35 @@ namespace Netflix_clone.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Actors     = context.Actors.ToList();
-                ViewBag.Categories = context.Categories.ToList();
+                ViewBag.Actors     = _actorRepo.GetAll();
+                ViewBag.Categories = _categoryRepo.GetAll();
                 return View(NewMovie);
             }
 
             try
             {
-                NewMovie.Actors     = context.Actors.Where(a => actorIds.Contains(a.Id)).ToList();
-                NewMovie.Categories = context.Categories.Where(c => categoryIds.Contains(c.Id)).ToList();
-                context.Movies.Add(NewMovie);
-                context.SaveChanges();
+                NewMovie.Actors     = _actorRepo.FindAll(a => actorIds.Contains(a.Id)).ToList();
+                NewMovie.Categories = _categoryRepo.FindAll(c => categoryIds.Contains(c.Id)).ToList();
+                _movieRepo.Add(NewMovie);
+                _movieRepo.Save();
                 return RedirectToAction(nameof(GetAllMovies));
             }
             catch
             {
-                ViewBag.Actors     = context.Actors.ToList();
-                ViewBag.Categories = context.Categories.ToList();
+                ViewBag.Actors     = _actorRepo.GetAll();
+                ViewBag.Categories = _categoryRepo.GetAll();
                 return View(NewMovie);
             }
         }
 
         public ActionResult Edit(int id)
         {
-            var movie = context.Movies
-                .Include(m => m.Actors)
-                .Include(m => m.Categories)
-                .FirstOrDefault(m => m.Id == id);
+            var movie = _movieRepo.GetByIdWithIncludes(id, m => m.Actors, m => m.Categories);
 
             if (movie is null) return NotFound();
 
-            ViewBag.Actors     = context.Actors.ToList();
-            ViewBag.Categories = context.Categories.ToList();
+            ViewBag.Actors     = _actorRepo.GetAll();
+            ViewBag.Categories = _categoryRepo.GetAll();
             ViewBag.SelectedActorIds    = movie.Actors.Select(a => a.Id).ToList();
             ViewBag.SelectedCategoryIds = movie.Categories.Select(c => c.Id).ToList();
 
@@ -98,8 +101,8 @@ namespace Netflix_clone.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Actors     = context.Actors.ToList();
-                ViewBag.Categories = context.Categories.ToList();
+                ViewBag.Actors     = _actorRepo.GetAll();
+                ViewBag.Categories = _categoryRepo.GetAll();
                 ViewBag.SelectedActorIds    = actorIds;
                 ViewBag.SelectedCategoryIds = categoryIds;
                 return View(DBMovie);
@@ -107,10 +110,7 @@ namespace Netflix_clone.Controllers
 
             try
             {
-                var existing = context.Movies
-                    .Include(m => m.Actors)
-                    .Include(m => m.Categories)
-                    .FirstOrDefault(m => m.Id == id);
+                var existing = _movieRepo.GetByIdWithIncludes(id, m => m.Actors, m => m.Categories);
 
                 if (existing is null) return NotFound();
 
@@ -124,39 +124,39 @@ namespace Netflix_clone.Controllers
                 existing.Actors.Clear();
                 existing.Categories.Clear();
 
-                existing.Actors = context.Actors
-                    .Where(a => actorIds.Contains(a.Id)).ToList();
-                existing.Categories = context.Categories
-                    .Where(c => categoryIds.Contains(c.Id)).ToList();
+                existing.Actors = _actorRepo.FindAll(a => actorIds.Contains(a.Id)).ToList();
+                existing.Categories = _categoryRepo.FindAll(c => categoryIds.Contains(c.Id)).ToList();
 
-                context.SaveChanges();
+                _movieRepo.Save();
                 return RedirectToAction(nameof(GetAllMovies));
             }
             catch
             {
-                ViewBag.Actors     = context.Actors.ToList();
-                ViewBag.Categories = context.Categories.ToList();
+                ViewBag.Actors     = _actorRepo.GetAll();
+                ViewBag.Categories = _categoryRepo.GetAll();
                 ViewBag.SelectedActorIds    = actorIds;
                 ViewBag.SelectedCategoryIds = categoryIds;
                 return View(DBMovie);
             }
         }
 
-        // GET: MovieController/Delete/5
         public ActionResult Delete(int id)
         {
-            return View(context.Movies.FirstOrDefault(m=>m.Id==id));
+            return View(_movieRepo.GetById(id));
         }
 
-        // POST: MovieController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, Movie movie)
         {
             try
             {
-                context.Movies.Remove(context.Movies.FirstOrDefault(m => m.Id == id));
-                context.SaveChanges();
+                var existing = _movieRepo.GetById(id);
+                if (existing != null)
+                {
+                    _movieRepo.Delete(existing);
+                    _movieRepo.Save();
+                }
                 return RedirectToAction(nameof(GetAllMovies));
             }
             catch
