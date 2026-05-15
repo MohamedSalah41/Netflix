@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Netflix_clone.Models;
 
@@ -11,9 +12,11 @@ using Netflix_clone.Models;
 namespace Netflix_clone.Migrations
 {
     [DbContext(typeof(NetflixContext))]
-    partial class NetflixContextModelSnapshot : ModelSnapshot
+    [Migration("20260515121000_AddTrailerUrlToMediaItem")]
+    partial class AddTrailerUrlToMediaItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

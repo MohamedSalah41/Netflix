@@ -6,5 +6,6 @@ public abstract class MediaItem : BaseItem
 {
     [Required(ErrorMessage = "This Field is Required")]
     public string VideoUrl { get; set; } = string.Empty;
+    public string TrailerUrl { get; set; } = string.Empty;
     public TimeSpan DurationSeconds { get; set; }
 }

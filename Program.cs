@@ -1,13 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
 using Netflix_clone.Repositories;
+using Netflix_clone.Filters;
 using Microsoft.AspNetCore.Identity;
 using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<NavCategoriesFilter>();
+
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.AddService<NavCategoriesFilter>();
+});
 builder.Services.AddDbContext<NetflixContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

@@ -1,24 +1,60 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
 using Netflix_clone.Repositories;
+using Netflix_clone.ViewModels;
 
 namespace Netflix_clone.Controllers
 {
-	
 	public class CategoryController : Controller
 	{
 		private readonly IGenericRepository<Category> _categoryRepo;
-		public CategoryController(IGenericRepository<Category> categoryRepo)
+		private readonly NetflixContext _db;
+
+		public CategoryController(IGenericRepository<Category> categoryRepo, NetflixContext db)
 		{
 			_categoryRepo = categoryRepo;
+			_db = db;
+		}
+
+		public async Task<IActionResult> Browse(string name)
+		{
+			if (string.IsNullOrWhiteSpace(name))
+				return NotFound();
+
+			var category = await _db.Categories
+				.FirstOrDefaultAsync(c => c.Name == name);
+
+			if (category == null)
+				return NotFound();
+
+			var movies = await _db.Movies
+				.Include(m => m.Categories)
+				.Where(m => m.Categories.Any(c => c.Name == name))
+				.OrderBy(m => m.Name)
+				.ToListAsync();
+
+			var series = await _db.Series
+				.Include(s => s.Categories)
+				.Where(s => s.Categories.Any(c => c.Name == name))
+				.OrderBy(s => s.Name)
+				.ToListAsync();
+
+			var vm = new CategoryBrowseViewModel
+			{
+				CategoryName = category.Name,
+				Movies = movies,
+				Series = series
+			};
+
+			return View(vm);
 		}
 
 		public async Task<IActionResult> Index()
 		{
 			var categories = (await _categoryRepo.GetAllAsync()).OrderBy(c => c.Name).ToList();
 			return View(categories);
-
 		}
 
 		[Authorize(Roles = "Admin")]
@@ -26,7 +62,6 @@ namespace Netflix_clone.Controllers
 		{
 			return View();
 		}
-
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
@@ -69,6 +104,7 @@ namespace Netflix_clone.Controllers
 			TempData["Success"] = "Category updated successfully.";
 			return RedirectToAction(nameof(Index));
 		}
+
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Delete(int id)
 		{
@@ -93,7 +129,5 @@ namespace Netflix_clone.Controllers
 			TempData["Success"] = "Category deleted successfully.";
 			return RedirectToAction(nameof(Index));
 		}
-
-
 	}
 }

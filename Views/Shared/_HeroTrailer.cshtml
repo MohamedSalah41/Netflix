@@ -1,0 +1,344 @@
+@model (string TrailerUrl, string PosterUrl, string Title)
+
+@{
+    var trailerUrl = Model.TrailerUrl ?? string.Empty;
+    bool hasTrailer = !string.IsNullOrWhiteSpace(trailerUrl);
+    
+    bool isYouTube = trailerUrl.Contains("youtube.com") || trailerUrl.Contains("youtu.be");
+    bool isVimeo = trailerUrl.Contains("vimeo.com");
+    bool isDirect = !isYouTube && !isVimeo && hasTrailer;
+    
+    string embedUrl = trailerUrl;
+    if (isYouTube)
+    {
+        var ytId = string.Empty;
+        if (trailerUrl.Contains("watch?v="))
+            ytId = trailerUrl.Split("watch?v=").Last().Split('&').First();
+        else if (trailerUrl.Contains("youtu.be/"))
+            ytId = trailerUrl.Split("youtu.be/").Last().Split('?').First();
+        else if (trailerUrl.Contains("embed/"))
+            ytId = trailerUrl.Split("embed/").Last().Split('?').First();
+        
+        if (!string.IsNullOrWhiteSpace(ytId))
+            embedUrl = $"https://www.youtube.com/embed/{ytId}?autoplay=1&mute=1&controls=0&loop=1&playlist={ytId}&modestbranding=1&rel=0&showinfo=0&enablejsapi=1";
+    }
+    else if (isVimeo)
+    {
+        if (!trailerUrl.Contains("player.vimeo.com"))
+        {
+            var vid = trailerUrl.TrimEnd('/').Split('/').Last();
+            embedUrl = $"https://player.vimeo.com/video/{vid}?autoplay=1&muted=1&loop=1&background=1";
+        }
+        else
+        {
+            embedUrl = trailerUrl + (trailerUrl.Contains('?') ? "&autoplay=1&muted=1&loop=1&background=1" : "?autoplay=1&muted=1&loop=1&background=1");
+        }
+    }
+}
+
+<style>
+    .hero-trailer-wrap {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+    }
+    
+    .hero-trailer-poster {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center top;
+        transform: scale(1.04);
+        transition: transform 8s ease-out, opacity 0.6s ease;
+    }
+    
+    .hero-trailer-poster.loaded {
+        transform: scale(1);
+    }
+    
+    .hero-trailer-poster.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    .hero-trailer-video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+        border: none;
+    }
+    
+    .hero-trailer-video.playing {
+        opacity: 1;
+    }
+    
+    .hero-trailer-iframe {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+        pointer-events: none;
+    }
+    
+    .hero-trailer-iframe.playing {
+        opacity: 1;
+        pointer-events: all;
+    }
+    
+    .hero-play-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(10px);
+        border: 3px solid rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        opacity: 1;
+    }
+    
+    .hero-play-btn:hover {
+        transform: translate(-50%, -50%) scale(1.15);
+        background: rgba(255, 255, 255, 0.35);
+        border-color: #fff;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    .hero-play-btn.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    .hero-play-icon {
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 14px 0 14px 24px;
+        border-color: transparent transparent transparent #fff;
+        margin-left: 4px;
+    }
+    
+    .hero-mute-btn {
+        position: absolute;
+        bottom: 80px;
+        right: 64px;
+        z-index: 10;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: rgba(13, 13, 24, 0.75);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    .hero-mute-btn.visible {
+        opacity: 1;
+        pointer-events: all;
+    }
+    
+    .hero-mute-btn:hover {
+        background: rgba(13, 13, 24, 0.9);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: scale(1.1);
+    }
+    
+    .hero-mute-btn svg {
+        width: 20px;
+        height: 20px;
+        color: #fff;
+    }
+    
+    @@media (max-width: 768px) {
+        .hero-play-btn {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .hero-play-icon {
+            border-width: 10px 0 10px 18px;
+        }
+        
+        .hero-mute-btn {
+            bottom: 60px;
+            right: 24px;
+            width: 40px;
+            height: 40px;
+        }
+        
+        .hero-mute-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+</style>
+
+<div class="hero-trailer-wrap" id="heroTrailerWrap">
+    <div class="hero-trailer-poster" id="heroTrailerPoster"
+         style="background-image: url('@Model.PosterUrl')"></div>
+    
+    @if (hasTrailer)
+    {
+        @if (isDirect)
+        {
+            <video id="heroTrailerVideo" class="hero-trailer-video" muted loop playsinline preload="none">
+                <source src="@trailerUrl" type="video/mp4" />
+            </video>
+        }
+        else if (isYouTube || isVimeo)
+        {
+            <iframe id="heroTrailerIframe" class="hero-trailer-iframe" 
+                    data-src="@embedUrl"
+                    title="@Model.Title Trailer"
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowfullscreen></iframe>
+        }
+        
+        <button class="hero-play-btn" id="heroPlayBtn" aria-label="Play trailer">
+            <div class="hero-play-icon"></div>
+        </button>
+        
+        @if (isDirect)
+        {
+            <button class="hero-mute-btn" id="heroMuteBtn" aria-label="Toggle sound">
+                <svg id="heroMuteIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <line x1="23" y1="9" x2="17" y2="15"/>
+                    <line x1="17" y1="9" x2="23" y2="15"/>
+                </svg>
+                <svg id="heroUnmuteIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </svg>
+            </button>
+        }
+        @if (isYouTube || isVimeo)
+        {
+            <button class="hero-mute-btn" id="heroMuteBtn" aria-label="Toggle sound">
+                <svg id="heroMuteIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <line x1="23" y1="9" x2="17" y2="15"/>
+                    <line x1="17" y1="9" x2="23" y2="15"/>
+                </svg>
+                <svg id="heroUnmuteIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </svg>
+            </button>
+        }
+    }
+</div>
+
+@if (hasTrailer)
+{
+    <script>
+    (function() {
+        const poster = document.getElementById('heroTrailerPoster');
+        const video = document.getElementById('heroTrailerVideo');
+        const iframe = document.getElementById('heroTrailerIframe');
+        const playBtn = document.getElementById('heroPlayBtn');
+        const muteBtn = document.getElementById('heroMuteBtn');
+        const muteIcon = document.getElementById('heroMuteIcon');
+        const unmuteIcon = document.getElementById('heroUnmuteIcon');
+        
+        const isYouTube = @(isYouTube ? "true" : "false");
+        const isVimeo = @(isVimeo ? "true" : "false");
+        const isDirect = @(isDirect ? "true" : "false");
+        
+        let isPlaying = false;
+        let isMuted = true;
+        
+        if (poster) {
+            const img = new Image();
+            img.onload = () => poster.classList.add('loaded');
+            img.src = '@Model.PosterUrl';
+        }
+        
+        if (playBtn) {
+            playBtn.addEventListener('click', function() {
+                if (!isPlaying) {
+                    isPlaying = true;
+                    poster.classList.add('hidden');
+                    playBtn.classList.add('hidden');
+                    
+                    if (isDirect && video) {
+                        video.play().then(() => {
+                            video.classList.add('playing');
+                            if (muteBtn) muteBtn.classList.add('visible');
+                        }).catch(err => {
+                            console.warn('Trailer playback failed:', err);
+                            isPlaying = false;
+                            poster.classList.remove('hidden');
+                            playBtn.classList.remove('hidden');
+                        });
+                    } else if ((isYouTube || isVimeo) && iframe) {
+                        iframe.src = iframe.dataset.src;
+                        iframe.classList.add('playing');
+                        if (muteBtn) muteBtn.classList.add('visible');
+                    }
+                }
+            });
+        }
+        
+        if (muteBtn) {
+            muteBtn.addEventListener('click', function() {
+                isMuted = !isMuted;
+                
+                if (isDirect && video) {
+                    video.muted = isMuted;
+                } else if (isYouTube && iframe) {
+                    iframe.contentWindow.postMessage(JSON.stringify({
+                        event: 'command',
+                        func: isMuted ? 'mute' : 'unMute'
+                    }), '*');
+                } else if (isVimeo && iframe) {
+                    iframe.contentWindow.postMessage(JSON.stringify({
+                        method: 'setVolume',
+                        value: isMuted ? 0 : 1
+                    }), '*');
+                }
+                
+                if (isMuted) {
+                    muteIcon.style.display = 'block';
+                    unmuteIcon.style.display = 'none';
+                } else {
+                    muteIcon.style.display = 'none';
+                    unmuteIcon.style.display = 'block';
+                }
+            });
+        }
+        
+        if (video && isDirect) {
+            video.addEventListener('ended', function() {
+                isPlaying = false;
+                video.classList.remove('playing');
+                poster.classList.remove('hidden');
+                playBtn.classList.remove('hidden');
+                if (muteBtn) muteBtn.classList.remove('visible');
+                video.currentTime = 0;
+            });
+        }
+    })();
+    </script>
+}

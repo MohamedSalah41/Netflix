@@ -1,0 +1,73 @@
+@model Netflix_clone.Models.MediaRow
+@{
+    string ctrl = Model.ItemType == "Movie" ? "Movie" : "Series";
+    string act  = Model.ItemType == "Movie" ? "Details" : "GetSeriesById";
+    var genres  = (Model.Genres ?? string.Empty)
+                    .Split(new[] { '·', '.' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(g => g.Trim())
+                    .Where(g => !string.IsNullOrEmpty(g))
+                    .Take(3)
+                    .ToList();
+}
+
+<div class="card-popup" role="tooltip">
+    @if (!string.IsNullOrWhiteSpace(Model.Item.Poster))
+    {
+        <img class="card-popup__thumb" src="@Model.Item.Poster" alt="@Model.Item.Name"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <div class="card-popup__thumb-placeholder" style="display:none">🎬</div>
+    }
+    else
+    {
+        <div class="card-popup__thumb-placeholder">🎬</div>
+    }
+
+    <div class="card-popup__body">
+        <div class="card-popup__actions">
+            <a asp-controller="@ctrl" asp-action="@act" asp-route-id="@Model.Item.Id"
+               class="popup-btn popup-btn--play" aria-label="Play @Model.Item.Name">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+            </a>
+            <a asp-controller="MyList" asp-action="Add" asp-route-id="@Model.Item.Id"
+               class="popup-btn popup-btn--outline" aria-label="Add to My List">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+            </a>
+            <button class="popup-btn popup-btn--outline" aria-label="Like">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                </svg>
+            </button>
+            <a asp-controller="@ctrl" asp-action="@act" asp-route-id="@Model.Item.Id"
+               class="popup-btn popup-btn--outline popup-btn--ml" aria-label="More info">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </a>
+        </div>
+
+        <div class="card-popup__match">@Model.MatchPercentage% Match</div>
+
+        <div class="card-popup__meta">
+            @if (Model.Year > 0) { <span>@Model.Year</span> }
+            @if (!string.IsNullOrWhiteSpace(Model.Duration)) { <span>@Model.Duration</span> }
+            @if (!string.IsNullOrWhiteSpace(Model.AgeRating)) { <span class="card-popup__age">@Model.AgeRating</span> }
+        </div>
+
+        <p class="card-popup__desc">@Model.Item.Description</p>
+
+        @if (genres.Any())
+        {
+            <div class="card-popup__genres">
+                @foreach (var g in genres)
+                {
+                    <span class="card-popup__genre-tag">@g</span>
+                }
+            </div>
+        }
+    </div>
+</div>

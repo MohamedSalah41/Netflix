@@ -1,0 +1,342 @@
+@model Netflix_clone.ViewModels.CategoryBrowseViewModel
+@{
+    ViewData["Title"] = Model.CategoryName;
+    ViewBag.ActivePage = "Browse";
+    var totalCount = Model.Movies.Count + Model.Series.Count;
+}
+
+<style>
+    .browse-page { padding: 80px 0 64px; }
+
+    .browse-header {
+        padding: 0 64px 40px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    .browse-header__top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    .browse-header__icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--brand-dim);
+        border: 1px solid rgba(229,9,20,0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--brand);
+        flex-shrink: 0;
+    }
+    .browse-header__title {
+        font-family: var(--font-display);
+        font-size: 42px;
+        letter-spacing: 1.5px;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    .browse-header__meta {
+        font-size: 14px;
+        color: var(--text-muted);
+        padding-left: 60px;
+    }
+
+    .browse-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 24px 64px 0;
+        flex-wrap: wrap;
+    }
+    .browse-tabs {
+        display: flex;
+        gap: 8px;
+    }
+    .browse-tab {
+        padding: 8px 20px;
+        border-radius: var(--radius-full);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid var(--border-medium);
+        background: none;
+        color: var(--text-secondary);
+        transition: background 200ms, color 200ms, border-color 200ms;
+        font-family: var(--font-body);
+    }
+    .browse-tab.active,
+    .browse-tab:hover {
+        background: var(--brand);
+        color: #fff;
+        border-color: var(--brand);
+    }
+    .browse-search {
+        margin-left: auto;
+        padding: 8px 16px;
+        border-radius: var(--radius-full);
+        border: 1px solid var(--border-medium);
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+        font-family: var(--font-body);
+        font-size: 13px;
+        outline: none;
+        width: 220px;
+        transition: border-color 200ms;
+    }
+    .browse-search:focus { border-color: var(--brand); }
+    .browse-search::placeholder { color: var(--text-muted); }
+
+    .browse-grid {
+        padding: 32px 64px 48px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 24px 16px;
+    }
+
+    .browse-card {
+        cursor: pointer;
+        transition: transform 250ms var(--ease-spring);
+        display: block;
+        text-decoration: none;
+        color: inherit;
+    }
+    .browse-card:hover { transform: scale(1.06) translateY(-4px); }
+    .browse-card[hidden] { display: none; }
+
+    .browse-card__poster {
+        width: 100%;
+        aspect-ratio: 2/3;
+        border-radius: var(--radius-md);
+        object-fit: cover;
+        background: var(--bg-elevated);
+        display: block;
+        border: 1px solid var(--border-subtle);
+    }
+    .browse-card__poster-placeholder {
+        width: 100%;
+        aspect-ratio: 2/3;
+        border-radius: var(--radius-md);
+        background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+        border: 1px solid var(--border-subtle);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--text-muted);
+        font-size: 28px;
+    }
+    .browse-card__poster-placeholder span {
+        font-size: 11px;
+        font-weight: 600;
+        text-align: center;
+        padding: 0 8px;
+        color: var(--text-secondary);
+        line-height: 1.3;
+    }
+    .browse-card__info { padding: 10px 4px 0; }
+    .browse-card__name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .browse-card__rating {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+    .browse-card__rating-star { color: #f59e0b; }
+    .browse-card__type {
+        display: inline-block;
+        margin-top: 4px;
+        padding: 2px 8px;
+        border-radius: var(--radius-full);
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: rgba(255,255,255,0.08);
+        color: var(--text-secondary);
+    }
+
+    .empty-state {
+        padding: 80px 64px;
+        text-align: center;
+        color: var(--text-muted);
+    }
+    .empty-state__icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state__title {
+        font-family: var(--font-display);
+        font-size: 24px;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+    .empty-state__text { font-size: 14px; margin-bottom: 24px; }
+    .empty-state__btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: var(--radius-full);
+        background: var(--brand);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 200ms, transform 150ms;
+    }
+    .empty-state__btn:hover { background: #c7070e; transform: translateY(-2px); color: #fff; }
+
+    @@media (max-width: 768px) {
+        .browse-header { padding: 0 24px 32px; }
+        .browse-header__title { font-size: 32px; }
+        .browse-header__meta { padding-left: 0; margin-top: 8px; }
+        .browse-controls { padding: 16px 24px 0; }
+        .browse-search { width: 100%; margin-left: 0; }
+        .browse-grid {
+            padding: 24px 24px 40px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 20px 12px;
+        }
+        .empty-state { padding: 60px 24px; }
+    }
+</style>
+
+<div class="browse-page">
+    <div class="browse-header">
+        <div class="browse-header__top">
+            <div class="browse-header__icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
+                    <polyline points="17 2 12 7 7 2"/>
+                </svg>
+            </div>
+            <h1 class="browse-header__title">@Model.CategoryName</h1>
+        </div>
+        <div class="browse-header__meta">
+            @totalCount @(totalCount == 1 ? "title" : "titles") available
+        </div>
+    </div>
+
+    @if (totalCount > 0)
+    {
+        <div class="browse-controls">
+            <div class="browse-tabs">
+                <button class="browse-tab active" data-filter="all">All</button>
+                @if (Model.Movies.Count > 0)
+                {
+                    <button class="browse-tab" data-filter="movie">Movies (@Model.Movies.Count)</button>
+                }
+                @if (Model.Series.Count > 0)
+                {
+                    <button class="browse-tab" data-filter="series">Series (@Model.Series.Count)</button>
+                }
+            </div>
+            <input class="browse-search" type="search" placeholder="Search in @Model.CategoryName…" id="browseSearch" />
+        </div>
+
+        <div class="browse-grid" id="browseGrid">
+            @foreach (var movie in Model.Movies)
+            {
+                <a asp-controller="Movie" asp-action="Details" asp-route-id="@movie.Id"
+                   class="browse-card" data-type="movie" data-name="@movie.Name.ToLower()">
+                    @if (!string.IsNullOrWhiteSpace(movie.Poster))
+                    {
+                        <img class="browse-card__poster" src="@movie.Poster" alt="@movie.Name"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+                        <div class="browse-card__poster-placeholder" style="display:none">🎬<span>@movie.Name</span></div>
+                    }
+                    else
+                    {
+                        <div class="browse-card__poster-placeholder">🎬<span>@movie.Name</span></div>
+                    }
+                    <div class="browse-card__info">
+                        <div class="browse-card__name">@movie.Name</div>
+                        <div class="browse-card__rating">
+                            <span class="browse-card__rating-star">★</span>
+                            @movie.Rating.ToString("0.0")
+                        </div>
+                        <span class="browse-card__type">Movie</span>
+                    </div>
+                </a>
+            }
+            @foreach (var series in Model.Series)
+            {
+                <a asp-controller="Series" asp-action="GetSeriesById" asp-route-id="@series.Id"
+                   class="browse-card" data-type="series" data-name="@series.Name.ToLower()">
+                    @if (!string.IsNullOrWhiteSpace(series.Poster))
+                    {
+                        <img class="browse-card__poster" src="@series.Poster" alt="@series.Name"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+                        <div class="browse-card__poster-placeholder" style="display:none">🎬<span>@series.Name</span></div>
+                    }
+                    else
+                    {
+                        <div class="browse-card__poster-placeholder">🎬<span>@series.Name</span></div>
+                    }
+                    <div class="browse-card__info">
+                        <div class="browse-card__name">@series.Name</div>
+                        <div class="browse-card__rating">
+                            <span class="browse-card__rating-star">★</span>
+                            @series.Rating.ToString("0.0")
+                        </div>
+                        <span class="browse-card__type">Series</span>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-state__icon">🎬</div>
+            <h2 class="empty-state__title">No Content Yet</h2>
+            <p class="empty-state__text">No movies or series have been tagged with "@Model.CategoryName" yet.</p>
+            <a asp-controller="Home" asp-action="Index" class="empty-state__btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"/>
+                    <polyline points="12 19 5 12 12 5"/>
+                </svg>
+                Back to Home
+            </a>
+        </div>
+    }
+</div>
+
+<script>
+    (function () {
+        var tabs = document.querySelectorAll('.browse-tab');
+        var cards = document.querySelectorAll('.browse-card');
+        var searchInput = document.getElementById('browseSearch');
+        var activeFilter = 'all';
+
+        function applyFilters() {
+            var query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            cards.forEach(function (card) {
+                var typeMatch = activeFilter === 'all' || card.dataset.type === activeFilter;
+                var nameMatch = !query || card.dataset.name.includes(query);
+                card.hidden = !(typeMatch && nameMatch);
+            });
+        }
+
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                tabs.forEach(function (t) { t.classList.remove('active'); });
+                tab.classList.add('active');
+                activeFilter = tab.dataset.filter;
+                applyFilters();
+            });
+        });
+
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilters);
+        }
+    })();
+</script>

@@ -35,8 +35,7 @@
 <div class="detail-page">
 
     <section class="detail-hero">
-        <div class="detail-hero__bg" id="heroBg"
-             style="background-image:url('@Model.Poster')"></div>
+        @await Html.PartialAsync("_HeroTrailer", (Model.TrailerUrl ?? string.Empty, Model.Poster ?? string.Empty, Model.Name ?? string.Empty))
         <div class="detail-hero__overlay"></div>
 
         <div class="detail-hero__content">
@@ -203,9 +202,6 @@
 @section Scripts {
 <script>
 (function () {
-    const bg = document.getElementById('heroBg');
-    if (bg) { const i = new Image(); i.onload = () => bg.classList.add('loaded'); i.src = '@Model.Poster'; }
-
     @if (isLoggedIn)
     {
         <text>

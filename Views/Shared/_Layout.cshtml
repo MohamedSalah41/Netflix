@@ -1,1100 +1,667 @@
-﻿@*
-╔══════════════════════════════════════════════════════════════════════╗
-║                    _Layout.cshtml — WatchIt                         ║
-║  Shared master layout for every page in the application.            ║
-║  All CSS and JS are embedded inline for standalone portability.     ║
-║  Mock data lives in the @{ } block below — no project dependency.   ║
-╚══════════════════════════════════════════════════════════════════════╝
-*@
-
-@* ─────────────────────────────────────────────────────────────────────
-   SECTION: C# CODE BLOCK  (@{ })
-   ─────────────────────────────────────────────────────────────────────
-   Everything inside @{ } runs on the SERVER before the page is sent
-   to the browser. Variables declared here are available anywhere in
-   this file using @variableName syntax.
-
-   In a real app you would inject services or read from ViewData/Model.
-   Here we hard-code all data so the file works 100% standalone.
-──────────────────────────────────────────────────────────────────────── *@
-@{
-    // ── Page title ──────────────────────────────────────────────────
-    // ViewBag.Title is set by each individual page (e.g. Index.cshtml).
-    // The null-coalescing operator ?? provides a safe default so the
-    // <title> tag is never empty even if a page forgets to set it.
+﻿@{
     var pageTitle = ViewBag.Title ?? "WatchIt";
-
-    // ── Logged-in user (real Identity data) ─────────────────────────
     var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
     var userName  = User.Identity?.Name ?? "";
-    var initials  = userName.Length >= 2
-                        ? userName.Substring(0, 2).ToUpper()
-                        : (userName.Length == 1 ? userName.ToUpper() : "?");
-    var currentUser = new
-    {
+    var initials  = userName.Length >= 2 ? userName.Substring(0, 2).ToUpper() : (userName.Length == 1 ? userName.ToUpper() : "?");
+    var currentUser = new {
         Name        = userName,
         Email       = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "",
         AvatarColor = "#e50914",
         Initials    = initials
     };
-
-    // ── Real profiles from DB (passed by HomeController via ViewBag) ────
-    var userProfiles   = ViewBag.UserProfiles   as List<Netflix_clone.Models.Profile> ?? new List<Netflix_clone.Models.Profile>();
+    var userProfiles    = ViewBag.UserProfiles   as List<Netflix_clone.Models.Profile> ?? new List<Netflix_clone.Models.Profile>();
     var activeProfileId = ViewBag.ActiveProfileId as int?;
-    var profileColors  = new[] { "#e50914", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899" };
-
-    // ── Mock: navigation categories ─────────────────────────────────
-    // Shown in the "Browse" mega-dropdown. Real data comes from
-    // CategoryService or is passed via ViewBag from a BaseController.
-    var navCategories = new[]
-    {
-        "Action", "Drama", "Comedy", "Thriller", "Horror",
-        "Sci-Fi", "Romance", "Documentary", "Animation", "Crime"
+    var profileColors   = new[] { "#e50914", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899" };
+    var notifications = new[] {
+        new { Icon = "", Text = "New episodes of Breaking Bad added",  Time = "2h ago",  IsRead = false },
+        new { Icon = "", Text = "Your rating on Inception was saved",  Time = "5h ago",  IsRead = false },
+        new { Icon = "", Text = "Interstellar is leaving soon",        Time = "1d ago",  IsRead = true  },
+        new { Icon = "", Text = "Welcome to WatchIt Premium!",         Time = "3d ago",  IsRead = true  }
     };
-
-    // ── Mock: notifications ──────────────────────────────────────────
-    // Bell icon badge count + dropdown items.
-    var notifications = new[]
-    {
-        new { Icon = "🎬", Text = "New episodes of Breaking Bad added",  Time = "2h ago",  IsRead = false },
-        new { Icon = "⭐", Text = "Your rating on Inception was saved",  Time = "5h ago",  IsRead = false },
-        new { Icon = "🔔", Text = "Interstellar is leaving soon",        Time = "1d ago",  IsRead = true  },
-        new { Icon = "🎉", Text = "Welcome to WatchIt Premium!",         Time = "3d ago",  IsRead = true  }
-    };
-
-    // ── Unread count (computed from the array above) ─────────────────
-    // This is pure C# LINQ running server-side.
-    var unreadCount = notifications.Count(n => !n.IsRead);
-
-    // ── Mock: subscription tier ──────────────────────────────────────
-    var subscriptionPlan = "Premium";   // could be "Basic", "Standard", "Premium"
-
-    // ── Active nav item ──────────────────────────────────────────────
-    // In production, compare ViewContext.RouteData to highlight the
-    // correct nav link. Here we hard-code "Home" for demonstration.
-    var activePage = ViewBag.ActivePage as string ?? "Home";
+    var unreadCount      = notifications.Count(n => !n.IsRead);
+    var subscriptionPlan = "Premium";
+    var activePage       = ViewBag.ActivePage as string ?? "Home";
 }
 
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-    @* ── META & CHARSET ─────────────────────────────────────────────
-       Standard HTML5 boilerplate. viewport meta is critical for
-       responsive design on mobile devices.
-    ──────────────────────────────────────────────────────────────────── *@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="WatchIt — Stream movies and series anytime, anywhere." />
-    <title>@pageTitle — WatchIt</title>
-
-    @* ── GOOGLE FONTS ────────────────────────────────────────────────
-       We import two complementary typefaces:
-       • "Bebas Neue"  → all-caps display font for the logo & headings
-       • "DM Sans"     → clean, contemporary sans for body text & UI
-       Both are loaded from Google Fonts CDN (no local file needed).
-    ──────────────────────────────────────────────────────────────────── *@
+    <meta name="description" content="WatchIt  Stream movies and series anytime, anywhere." />
+    <title>@pageTitle  WatchIt</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
-
-    @* ── LUCIDE ICONS (CDN) ──────────────────────────────────────────
-       Lightweight, consistent icon set. We use it via the ESM build
-       imported in the <script> section below.
-    ──────────────────────────────────────────────────────────────────── *@
-
-    @* ════════════════════════════════════════════════════════════════
-       INLINE CSS
-       ════════════════════════════════════════════════════════════════
-       Organised into labelled sections:
-         1. CSS Custom Properties  (design tokens / variables)
-         2. Reset & Base           (normalise browser defaults)
-         3. Layout                 (body, main, page wrapper)
-         4. Navbar                 (top navigation bar)
-         5. Search                 (expandable search input)
-         6. Profile Dropdown       (avatar + menu)
-         7. Notifications          (bell + panel)
-         8. Footer                 (bottom section)
-         9. Toast                  (profile-switch confirmation)
-        10. Animations & Keyframes
-        11. Responsive / Media Queries
-    ════════════════════════════════════════════════════════════════ *@
     <style>
-            /* ══════════════════════════════════════════════════════════
-               1. CSS CUSTOM PROPERTIES  (Design Tokens)
-               ══════════════════════════════════════════════════════════
-               Define ALL colours, radii, shadows and transitions as
-               variables. Changing one variable here updates the whole UI.
-               This also makes dark/light theming trivial later.
-            ══════════════════════════════════════════════════════════ */
-            :root {
-                /* Brand */
-                --brand          : #e50914;
-                --brand-hover    : #f40612;
-                --brand-dim      : rgba(229, 9, 20, 0.15);
-
-                /* Backgrounds */
-                --bg-void        : #080810;   /* deepest background */
-                --bg-base        : #0d0d18;   /* page body */
-                --bg-surface     : #12121f;   /* cards / panels */
-                --bg-elevated    : #1a1a2e;   /* hover state */
-                --bg-glass       : rgba(13, 13, 24, 0.85); /* navbar glass */
-
-                /* Text */
-                --text-primary   : #f0f0f8;
-                --text-secondary : #9898b8;
-                --text-muted     : #5a5a7a;
-                --text-inverse   : #080810;
-
-                /* Borders */
-                --border-subtle  : rgba(255, 255, 255, 0.06);
-                --border-medium  : rgba(255, 255, 255, 0.12);
-
-                /* Shadows */
-                --shadow-sm      : 0 2px 8px rgba(0,0,0,0.4);
-                --shadow-md      : 0 8px 24px rgba(0,0,0,0.5);
-                --shadow-lg      : 0 20px 60px rgba(0,0,0,0.7);
-                --shadow-brand   : 0 0 20px rgba(229,9,20,0.3);
-
-                /* Typography */
-                --font-display   : 'Bebas Neue', cursive;
-                --font-body      : 'DM Sans', system-ui, sans-serif;
-
-                /* Spacing scale (8px base) */
-                --sp-1  : 4px;
-                --sp-2  : 8px;
-                --sp-3  : 12px;
-                --sp-4  : 16px;
-                --sp-5  : 20px;
-                --sp-6  : 24px;
-                --sp-8  : 32px;
-                --sp-10 : 40px;
-
-                /* Shape */
-                --radius-sm  : 6px;
-                --radius-md  : 10px;
-                --radius-lg  : 16px;
-                --radius-full: 9999px;
-
-                /* Motion */
-                --ease-out   : cubic-bezier(0.16, 1, 0.3, 1);
-                --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-                --duration   : 220ms;
-
-                /* Navbar */
-                --navbar-h   : 68px;
-            }
-
-            /* ══════════════════════════════════════════════════════════
-               2. RESET & BASE
-               ══════════════════════════════════════════════════════════
-               box-sizing: border-box ensures padding is included in width.
-               margin: 0 on body removes the browser's default margin.
-            ══════════════════════════════════════════════════════════ */
-            *, *::before, *::after {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
-
-            html { scroll-behavior: smooth; }
-
-            body {
-                font-family      : var(--font-body);
-                background-color : var(--bg-base);
-                color            : var(--text-primary);
-                min-height       : 100vh;
-                /* Reserve space for the fixed navbar so content isn't hidden behind it */
-                padding-top      : var(--navbar-h);
-                -webkit-font-smoothing: antialiased;
-            }
-
-            a {
-                color           : inherit;
-                text-decoration : none;
-            }
-
-            img { max-width: 100%; display: block; }
-
-            button {
-                cursor     : pointer;
-                border     : none;
-                background : none;
-                font-family: inherit;
-            }
-
-            ul { list-style: none; }
-
-            /* ══════════════════════════════════════════════════════════
-               3. LAYOUT — page wrapper & main content
-               ══════════════════════════════════════════════════════════
-               .page-wrapper wraps everything so we can add
-               per-page max-width or padding if needed.
-            ══════════════════════════════════════════════════════════ */
-            .page-wrapper {
-                min-height: calc(100vh - var(--navbar-h));
-                display   : flex;
-                flex-direction: column;
-            }
-
-            main {
-                flex: 1;   /* pushes footer to bottom of the viewport */
-            }
-
-            /* ══════════════════════════════════════════════════════════
-               4. NAVBAR
-               ══════════════════════════════════════════════════════════
-               The navbar is position:fixed so it stays visible while the
-               user scrolls. It uses backdrop-filter (blur) to create a
-               frosted-glass effect over page content behind it.
-
-               When the user scrolls down (js adds .scrolled class),
-               we increase the blur and show a stronger bottom border.
-            ══════════════════════════════════════════════════════════ */
-            .navbar {
-                position        : fixed;
-                top             : 0;
-                left            : 0;
-                right           : 0;
-                z-index         : 1000;
-                height          : var(--navbar-h);
-
-                /* Glass effect */
-                background      : var(--bg-glass);
-                backdrop-filter : blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-
-                /* Gradient bottom border drawn with box-shadow */
-                border-bottom   : 1px solid var(--border-subtle);
-
-                transition      : background var(--duration) var(--ease-out),
-                                  border-color var(--duration) var(--ease-out),
-                                  box-shadow var(--duration) var(--ease-out);
-            }
-
-            /* Scrolled state — applied by JS when window.scrollY > 10 */
-            .navbar.scrolled {
-                background   : rgba(8, 8, 16, 0.97);
-                border-color : var(--border-medium);
-                box-shadow   : var(--shadow-md);
-            }
-
-            /* Inner flex row: logo | nav | right-side controls */
-            .navbar__inner {
-                display        : flex;
-                align-items    : center;
-                height         : 100%;
-                padding        : 0 var(--sp-6);
-                gap            : var(--sp-6);
-            }
-
-            /* ── Logo ──────────────────────────────────────────────── */
-            .navbar__logo {
-                font-family    : var(--font-display);
-                font-size      : 28px;
-                letter-spacing : 2px;
-                color          : var(--brand);
-                flex-shrink    : 0;
-                /* Red glow on hover */
-                transition     : text-shadow var(--duration) var(--ease-out);
-            }
-            .navbar__logo span { color: var(--text-primary); }
-            .navbar__logo:hover { text-shadow: var(--shadow-brand); }
-
-            /* ── Primary nav links ─────────────────────────────────── */
-            .navbar__nav {
-                display    : flex;
-                align-items: center;
-                gap        : var(--sp-1);
-            }
-
-            .navbar__nav-link {
-                position   : relative;
-                padding    : var(--sp-2) var(--sp-3);
-                font-size  : 14px;
-                font-weight: 500;
-                color      : var(--text-secondary);
-                border-radius: var(--radius-sm);
-                transition : color var(--duration) var(--ease-out),
-                             background var(--duration) var(--ease-out);
-                white-space: nowrap;
-            }
-            .navbar__nav-link:hover,
-            .navbar__nav-link.active {
-                color      : var(--text-primary);
-                background : var(--bg-elevated);
-            }
-
-            /* Active underline drawn with ::after pseudo-element */
-            .navbar__nav-link.active::after {
-                content   : '';
-                position  : absolute;
-                bottom    : 2px;
-                left      : 50%;
-                transform : translateX(-50%);
-                width     : 20px;
-                height    : 2px;
-                background: var(--brand);
-                border-radius: var(--radius-full);
-            }
-
-            /* ── Browse mega-dropdown ──────────────────────────────── */
-            .nav-browse {
-                position: relative;  /* anchor for the absolute dropdown */
-            }
-
-            .nav-browse__toggle {
-                display    : flex;
-                align-items: center;
-                gap        : var(--sp-1);
-                padding    : var(--sp-2) var(--sp-3);
-                font-size  : 14px;
-                font-weight: 500;
-                color      : var(--text-secondary);
-                border-radius: var(--radius-sm);
-                transition : color var(--duration), background var(--duration);
-            }
-            .nav-browse__toggle:hover { color: var(--text-primary); background: var(--bg-elevated); }
-            .nav-browse__toggle svg { transition: transform var(--duration) var(--ease-out); }
-            .nav-browse.open .nav-browse__toggle svg { transform: rotate(180deg); }
-
-            .nav-browse__panel {
-                position     : absolute;
-                top          : calc(100% + 10px);
-                left         : 0;
-                min-width    : 280px;
-                background   : var(--bg-surface);
-                border       : 1px solid var(--border-medium);
-                border-radius: var(--radius-lg);
-                box-shadow   : var(--shadow-lg);
-                padding      : var(--sp-3);
-                display      : grid;
-                grid-template-columns: 1fr 1fr;
-                gap          : var(--sp-1);
-
-                /* Hidden by default; JS toggles .open */
-                opacity      : 0;
-                pointer-events: none;
-                transform    : translateY(-8px);
-                transition   : opacity var(--duration) var(--ease-out),
-                               transform var(--duration) var(--ease-out);
-            }
-            .nav-browse.open .nav-browse__panel {
-                opacity      : 1;
-                pointer-events: all;
-                transform    : translateY(0);
-            }
-
-            .nav-browse__category {
-                padding      : var(--sp-2) var(--sp-3);
-                border-radius: var(--radius-sm);
-                font-size    : 13px;
-                color        : var(--text-secondary);
-                transition   : color var(--duration), background var(--duration);
-            }
-            .nav-browse__category:hover {
-                color      : var(--text-primary);
-                background : var(--bg-elevated);
-            }
-
-            /* Spacer pushes right-side controls to the far right */
-            .navbar__spacer { flex: 1; }
-
-            /* ── Right-side controls wrapper ───────────────────────── */
-            .navbar__controls {
-                display    : flex;
-                align-items: center;
-                gap        : var(--sp-2);
-            }
-
-            /* ══════════════════════════════════════════════════════════
-               5. SEARCH
-               ══════════════════════════════════════════════════════════
-               Collapsed by default (shows only an icon button).
-               When the user clicks the icon, JS adds .open and the
-               input expands via a CSS max-width transition.
-            ══════════════════════════════════════════════════════════ */
-            .search {
-                display    : flex;
-                align-items: center;
-                position   : relative;
-            }
-
-            .search__toggle {
-                width       : 36px;
-                height      : 36px;
-                border-radius: var(--radius-full);
-                display     : flex;
-                align-items : center;
-                justify-content: center;
-                color       : var(--text-secondary);
-                transition  : color var(--duration), background var(--duration);
-            }
-            .search__toggle:hover,
-            .search.open .search__toggle {
-                color      : var(--text-primary);
-                background : var(--bg-elevated);
-            }
-
-            .search__input-wrap {
-                display   : flex;
-                align-items: center;
-                gap       : 8px;
-                max-width : 0;
-                overflow  : hidden;
-                transition: max-width 350ms var(--ease-out),
-                            opacity 300ms var(--ease-out);
-                opacity   : 0;
-            }
-            .search.open .search__input-wrap {
-                max-width : 320px;
-                opacity   : 1;
-            }
-
-            .search__input {
-                width       : 240px;
-                padding     : var(--sp-2) var(--sp-4);
-                background  : var(--bg-elevated);
-                border      : 1px solid var(--border-medium);
-                border-radius: var(--radius-full);
-                color       : var(--text-primary);
-                font-family : var(--font-body);
-                font-size   : 14px;
-                outline     : none;
-                transition  : border-color var(--duration);
-            }
-            .search__input::placeholder { color: var(--text-muted); }
-            .search__input:focus { border-color: var(--brand); }
-
-            .search__submit-btn {
-                width       : 32px;
-                height      : 32px;
-                border-radius: var(--radius-full);
-                background  : var(--brand);
-                color       : #fff;
-                display     : flex;
-                align-items : center;
-                justify-content: center;
-                flex-shrink : 0;
-                transition  : background var(--duration);
-            }
-            .search__submit-btn:hover {
-                background  : var(--brand-hover);
-            }
-
-            /* ══════════════════════════════════════════════════════════
-               6. ICON BUTTONS (Bell, etc.)
-            ══════════════════════════════════════════════════════════ */
-            .icon-btn {
-                position    : relative;
-                width       : 36px;
-                height      : 36px;
-                border-radius: var(--radius-full);
-                display     : flex;
-                align-items : center;
-                justify-content: center;
-                color       : var(--text-secondary);
-                transition  : color var(--duration), background var(--duration);
-            }
-            .icon-btn:hover { color: var(--text-primary); background: var(--bg-elevated); }
-
-            /* Notification badge — small red dot with count */
-            .icon-btn__badge {
-                position     : absolute;
-                top          : 2px;
-                right        : 2px;
-                min-width    : 16px;
-                height       : 16px;
-                background   : var(--brand);
-                border-radius: var(--radius-full);
-                font-size    : 10px;
-                font-weight  : 700;
-                color        : #fff;
-                display      : flex;
-                align-items  : center;
-                justify-content: center;
-                padding      : 0 3px;
-                line-height  : 1;
-            }
-
-            /* ══════════════════════════════════════════════════════════
-               7. NOTIFICATIONS DROPDOWN
-            ══════════════════════════════════════════════════════════ */
-            .notif-wrap { position: relative; }
-
-            .notif-panel {
-                position     : absolute;
-                top          : calc(100% + 12px);
-                right        : 0;
-                width        : 340px;
-                background   : var(--bg-surface);
-                border       : 1px solid var(--border-medium);
-                border-radius: var(--radius-lg);
-                box-shadow   : var(--shadow-lg);
-                overflow     : hidden;
-
-                opacity      : 0;
-                pointer-events: none;
-                transform    : translateY(-6px);
-                transition   : opacity var(--duration) var(--ease-out),
-                               transform var(--duration) var(--ease-out);
-            }
-            .notif-wrap.open .notif-panel {
-                opacity      : 1;
-                pointer-events: all;
-                transform    : translateY(0);
-            }
-
-            .notif-header {
-                padding     : var(--sp-4) var(--sp-5);
-                font-size   : 13px;
-                font-weight : 600;
-                color       : var(--text-secondary);
-                border-bottom: 1px solid var(--border-subtle);
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
-            }
-
-            .notif-item {
-                display    : flex;
-                align-items: flex-start;
-                gap        : var(--sp-3);
-                padding    : var(--sp-3) var(--sp-5);
-                transition : background var(--duration);
-                cursor     : pointer;
-            }
-            .notif-item:hover { background: var(--bg-elevated); }
-            .notif-item.unread { border-left: 3px solid var(--brand); }
-            .notif-item.read   { border-left: 3px solid transparent; }
-
-            .notif-item__icon {
-                font-size   : 20px;
-                line-height : 1;
-                flex-shrink : 0;
-                margin-top  : 2px;
-            }
-            .notif-item__body { flex: 1; }
-            .notif-item__text {
-                font-size  : 13px;
-                color      : var(--text-primary);
-                line-height: 1.4;
-            }
-            .notif-item.read .notif-item__text { color: var(--text-secondary); }
-            .notif-item__time {
-                font-size  : 11px;
-                color      : var(--text-muted);
-                margin-top : var(--sp-1);
-            }
-
-            /* ══════════════════════════════════════════════════════════
-               8. AUTH BUTTONS (Login / Register — shown when logged out)
-            ══════════════════════════════════════════════════════════ */
-            .auth-btn {
-                display      : inline-flex;
-                align-items  : center;
-                padding      : var(--sp-2) var(--sp-4);
-                border-radius: var(--radius-full);
-                font-size    : 13px;
-                font-weight  : 600;
-                transition   : background var(--duration), color var(--duration),
-                               border-color var(--duration);
-                white-space  : nowrap;
-            }
-            .auth-btn--ghost {
-                color        : var(--text-secondary);
-                border       : 1px solid var(--border-medium);
-            }
-            .auth-btn--ghost:hover {
-                color        : var(--text-primary);
-                border-color : var(--border-medium);
-                background   : var(--bg-elevated);
-            }
-            .auth-btn--solid {
-                background   : var(--brand);
-                color        : #fff;
-                border       : 1px solid transparent;
-            }
-            .auth-btn--solid:hover {
-                background   : var(--brand-hover);
-            }
-
-            /* ══════════════════════════════════════════════════════════
-               9. PROFILE DROPDOWN
-               ══════════════════════════════════════════════════════════
-               Avatar button → opens a dropdown with profile switcher
-               and account actions.
-            ══════════════════════════════════════════════════════════ */
-            .profile-wrap { position: relative; }
-
-            .profile-btn {
-                display    : flex;
-                align-items: center;
-                gap        : var(--sp-2);
-                padding    : var(--sp-1) var(--sp-2);
-                border-radius: var(--radius-full);
-                transition : background var(--duration);
-            }
-            .profile-btn:hover { background: var(--bg-elevated); }
-
-            /* Circular avatar using CSS initials */
-            .profile-avatar {
-                width        : 34px;
-                height       : 34px;
-                border-radius: var(--radius-full);
-                display      : flex;
-                align-items  : center;
-                justify-content: center;
-                font-size    : 13px;
-                font-weight  : 700;
-                color        : #fff;
-                flex-shrink  : 0;
-            }
-
-            .profile-btn__chevron {
-                color     : var(--text-muted);
-                transition: transform var(--duration) var(--ease-out);
-            }
-            .profile-wrap.open .profile-btn__chevron { transform: rotate(180deg); }
-
-            .profile-panel {
-                position     : absolute;
-                top          : calc(100% + 12px);
-                right        : 0;
-                width        : 260px;
-                background   : var(--bg-surface);
-                border       : 1px solid var(--border-medium);
-                border-radius: var(--radius-lg);
-                box-shadow   : var(--shadow-lg);
-                overflow     : hidden;
-
-                opacity      : 0;
-                pointer-events: none;
-                transform    : translateY(-6px);
-                transition   : opacity var(--duration) var(--ease-out),
-                               transform var(--duration) var(--ease-out);
-            }
-            .profile-wrap.open .profile-panel {
-                opacity      : 1;
-                pointer-events: all;
-                transform    : translateY(0);
-            }
-
-            /* User info strip at top of dropdown */
-            .profile-panel__user {
-                display    : flex;
-                align-items: center;
-                gap        : var(--sp-3);
-                padding    : var(--sp-4) var(--sp-5);
-                border-bottom: 1px solid var(--border-subtle);
-            }
-            .profile-panel__name  { font-size: 14px; font-weight: 600; }
-            .profile-panel__email { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-            /* Subscription badge */
-            .plan-badge {
-                display      : inline-flex;
-                align-items  : center;
-                gap          : 4px;
-                background   : var(--brand-dim);
-                color        : var(--brand);
-                border       : 1px solid rgba(229,9,20,0.3);
-                border-radius: var(--radius-full);
-                padding      : 2px 8px;
-                font-size    : 10px;
-                font-weight  : 700;
-                letter-spacing: 0.05em;
-                text-transform: uppercase;
-                margin-top   : 4px;
-            }
-
-            /* Profile switcher list */
-            .profile-panel__section {
-                padding: var(--sp-3);
-                border-bottom: 1px solid var(--border-subtle);
-            }
-            .profile-panel__label {
-                font-size   : 10px;
-                font-weight : 600;
-                color       : var(--text-muted);
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-                padding     : var(--sp-1) var(--sp-2);
-                margin-bottom: var(--sp-1);
-            }
-
-            /* Individual profile row */
-            .profile-item {
-                display    : flex;
-                align-items: center;
-                gap        : var(--sp-3);
-                padding    : var(--sp-2) var(--sp-3);
-                border-radius: var(--radius-md);
-                cursor     : pointer;
-                transition : background var(--duration);
-            }
-            .profile-item:hover { background: var(--bg-elevated); }
-            .profile-item.active { background: var(--bg-elevated); }
-
-            .profile-item__name  { font-size: 13px; font-weight: 500; flex: 1; }
-            .profile-item__kid   { font-size: 10px; color: var(--text-muted); }
-            .profile-item__check { color: var(--brand); opacity: 0; }
-            .profile-item.active .profile-item__check { opacity: 1; }
-
-            /* Menu actions (Account, Settings, Sign out) */
-            .profile-panel__actions { padding: var(--sp-2); }
-
-            .profile-action {
-                display    : flex;
-                align-items: center;
-                gap        : var(--sp-3);
-                padding    : var(--sp-2) var(--sp-3);
-                border-radius: var(--radius-md);
-                font-size  : 13px;
-                color      : var(--text-secondary);
-                transition : color var(--duration), background var(--duration);
-                width      : 100%;
-                text-align : left;
-            }
-            .profile-action:hover { color: var(--text-primary); background: var(--bg-elevated); }
-            .profile-action.danger:hover { color: #ff4444; }
-
-            /* ══════════════════════════════════════════════════════════
-               9. MOBILE HAMBURGER MENU
-            ══════════════════════════════════════════════════════════ */
-            .hamburger {
-                display      : none;   /* hidden on desktop */
-                flex-direction: column;
-                gap          : 5px;
-                padding      : var(--sp-2);
-                border-radius: var(--radius-sm);
-                transition   : background var(--duration);
-            }
-            .hamburger:hover { background: var(--bg-elevated); }
-
-            .hamburger__line {
-                width        : 22px;
-                height       : 2px;
-                background   : var(--text-secondary);
-                border-radius: var(--radius-full);
-                transition   : transform var(--duration) var(--ease-out),
-                               opacity var(--duration),
-                               background var(--duration);
-            }
-            /* Animate hamburger → X when .open */
-            .hamburger.open .hamburger__line:nth-child(1) { transform: translateY(7px) rotate(45deg);  background: var(--text-primary); }
-            .hamburger.open .hamburger__line:nth-child(2) { opacity: 0; }
-            .hamburger.open .hamburger__line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: var(--text-primary); }
-
-            /* Mobile drawer that slides down */
-            .mobile-menu {
-                position   : fixed;
-                top        : var(--navbar-h);
-                left       : 0;
-                right      : 0;
-                background : var(--bg-surface);
-                border-bottom: 1px solid var(--border-medium);
-                box-shadow : var(--shadow-md);
-                padding    : var(--sp-4);
-                display    : none;    /* shown via JS on mobile */
-                flex-direction: column;
-                gap        : var(--sp-1);
-                z-index    : 999;
-
-                animation  : slideDown 250ms var(--ease-out) both;
-            }
-            @@keyframes slideDown {
-                from { opacity: 0; transform: translateY(-10px); }
-                to   { opacity: 1; transform: translateY(0); }
-            }
-
-            .mobile-menu__link {
-                padding    : var(--sp-3) var(--sp-4);
-                border-radius: var(--radius-md);
-                font-size  : 15px;
-                color      : var(--text-secondary);
-                transition : color var(--duration), background var(--duration);
-            }
-            .mobile-menu__link:hover,
-            .mobile-menu__link.active {
-                color      : var(--text-primary);
-                background : var(--bg-elevated);
-            }
-            .mobile-menu__divider {
-                height       : 1px;
-                background   : var(--border-subtle);
-                margin       : var(--sp-2) 0;
-            }
-
-            /* ══════════════════════════════════════════════════════════
-               10. FOOTER
-               ══════════════════════════════════════════════════════════
-               Three-column layout on desktop, stacked on mobile.
-            ══════════════════════════════════════════════════════════ */
-            .footer {
-                background   : var(--bg-void);
-                border-top   : 1px solid var(--border-subtle);
-                padding      : var(--sp-10) var(--sp-6) var(--sp-6);
-            }
-
-            .footer__grid {
-                max-width          : 1200px;
-                margin             : 0 auto;
-                display            : grid;
-                grid-template-columns: 2fr 1fr 1fr 1fr;
-                gap                : var(--sp-8);
-            }
-
-            .footer__brand-name {
-                font-family   : var(--font-display);
-                font-size     : 32px;
-                letter-spacing: 2px;
-                color         : var(--brand);
-            }
-            .footer__brand-name span { color: var(--text-primary); }
-
-            .footer__tagline {
-                font-size  : 13px;
-                color      : var(--text-muted);
-                margin-top : var(--sp-2);
-                line-height: 1.6;
-            }
-
-            .footer__social {
-                display    : flex;
-                gap        : var(--sp-2);
-                margin-top : var(--sp-4);
-            }
-
-            .social-btn {
-                width        : 36px;
-                height       : 36px;
-                border-radius: var(--radius-full);
-                background   : var(--bg-elevated);
-                border       : 1px solid var(--border-subtle);
-                display      : flex;
-                align-items  : center;
-                justify-content: center;
-                font-size    : 14px;
-                color        : var(--text-secondary);
-                transition   : color var(--duration), background var(--duration),
-                               border-color var(--duration);
-            }
-            .social-btn:hover {
-                color       : var(--text-primary);
-                background  : var(--bg-elevated);
-                border-color: var(--border-medium);
-            }
-
-            .footer__col-title {
-                font-size   : 11px;
-                font-weight : 700;
-                letter-spacing: 0.1em;
-                text-transform: uppercase;
-                color       : var(--text-muted);
-                margin-bottom: var(--sp-4);
-            }
-
-            .footer__links {
-                display       : flex;
-                flex-direction: column;
-                gap           : var(--sp-3);
-            }
-
-            .footer__link {
-                font-size  : 13px;
-                color      : var(--text-secondary);
-                transition : color var(--duration);
-            }
-            .footer__link:hover { color: var(--text-primary); }
-
-            .footer__bottom {
-                max-width    : 1200px;
-                margin       : var(--sp-8) auto 0;
-                padding-top  : var(--sp-5);
-                border-top   : 1px solid var(--border-subtle);
-                display      : flex;
-                align-items  : center;
-                justify-content: space-between;
-                flex-wrap    : wrap;
-                gap          : var(--sp-3);
-            }
-
-            .footer__copy {
-                font-size : 12px;
-                color     : var(--text-muted);
-            }
-
-            .footer__legal {
-                display  : flex;
-                gap      : var(--sp-5);
-            }
-            .footer__legal a { font-size: 12px; color: var(--text-muted); }
-            .footer__legal a:hover { color: var(--text-secondary); }
-
-            /* ══════════════════════════════════════════════════════════
-               11. TOAST NOTIFICATION
-               ══════════════════════════════════════════════════════════
-               Used for the "Switched to profile X" confirmation message.
-               JS controls adding / removing the .show class.
-            ══════════════════════════════════════════════════════════ */
-            .toast {
-                position     : fixed;
-                bottom       : 32px;
-                left         : 50%;
-                transform    : translateX(-50%) translateY(80px);
-                background   : var(--bg-surface);
-                border       : 1px solid var(--border-medium);
-                border-radius: var(--radius-full);
-                box-shadow   : var(--shadow-md);
-                padding      : var(--sp-3) var(--sp-5);
-                font-size    : 13px;
-                color        : var(--text-primary);
-                white-space  : nowrap;
-                z-index      : 2000;
-                transition   : transform 350ms var(--ease-spring),
-                               opacity 300ms var(--ease-out);
-                opacity      : 0;
-                pointer-events: none;
-            }
-            .toast.show {
-                transform  : translateX(-50%) translateY(0);
-                opacity    : 1;
-            }
-
-            /* ══════════════════════════════════════════════════════════
-               12. UTILITY — backdrop overlay
-               ══════════════════════════════════════════════════════════
-               Invisible overlay shown behind open dropdowns on mobile
-               so clicking outside closes the dropdown.
-            ══════════════════════════════════════════════════════════ */
-            .backdrop {
-                position   : fixed;
-                inset      : 0;
-                z-index    : 900;
-                display    : none;
-            }
-            .backdrop.active { display: block; }
-
-            /* ══════════════════════════════════════════════════════════
-               13. RESPONSIVE — mobile breakpoints
-            ══════════════════════════════════════════════════════════ */
-            @@media (max-width: 900px) {
-                /* Hide primary nav on tablet/mobile */
-                .navbar__nav    { display: none; }
-                .nav-browse     { display: none; }
-                .hamburger      { display: flex; }
-
-                .footer__grid {
-                    grid-template-columns: 1fr 1fr;
-                }
-            }
-
-            @@media (max-width: 600px) {
-                .navbar__inner { padding: 0 var(--sp-4); gap: var(--sp-3); }
-
-                /* Hide search on very small screens — use mobile menu instead */
-                .search { display: none; }
-
-                .footer__grid {
-                    grid-template-columns: 1fr;
-                }
-
-                .footer__bottom {
-                    flex-direction: column;
-                    align-items   : flex-start;
-                }
-            }
-
-            /* ══════════════════════════════════════════════════════════
-               14. SCROLLBAR STYLING (webkit browsers)
-            ══════════════════════════════════════════════════════════ */
-            ::-webkit-scrollbar { width: 6px; }
-            ::-webkit-scrollbar-track { background: var(--bg-base); }
-            ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 3px; }
-            ::-webkit-scrollbar-thumb:hover { background: var(--border-medium); }
+        :root {
+            --brand          : #e50914;
+            --brand-hover    : #f40612;
+            --brand-dim      : rgba(229, 9, 20, 0.15);
+            --bg-void        : #080810;
+            --bg-base        : #0d0d18;
+            --bg-surface     : #12121f;
+            --bg-elevated    : #1a1a2e;
+            --bg-glass       : rgba(13, 13, 24, 0.85);
+            --text-primary   : #f0f0f8;
+            --text-secondary : #9898b8;
+            --text-muted     : #5a5a7a;
+            --border-subtle  : rgba(255, 255, 255, 0.06);
+            --border-medium  : rgba(255, 255, 255, 0.12);
+            --shadow-sm      : 0 2px 8px rgba(0,0,0,0.4);
+            --shadow-md      : 0 8px 24px rgba(0,0,0,0.5);
+            --shadow-lg      : 0 20px 60px rgba(0,0,0,0.7);
+            --shadow-brand   : 0 0 20px rgba(229,9,20,0.3);
+            --font-display   : 'Bebas Neue', cursive;
+            --font-body      : 'DM Sans', system-ui, sans-serif;
+            --sp-1  : 4px;  --sp-2  : 8px;  --sp-3  : 12px; --sp-4  : 16px;
+            --sp-5  : 20px; --sp-6  : 24px; --sp-8  : 32px; --sp-10 : 40px;
+            --radius-sm  : 6px;  --radius-md  : 10px;
+            --radius-lg  : 16px; --radius-full: 9999px;
+            --ease-out   : cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --duration   : 220ms;
+            --navbar-h   : 68px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family      : var(--font-body);
+            background-color : var(--bg-base);
+            color            : var(--text-primary);
+            min-height       : 100vh;
+            padding-top      : 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        a { color: inherit; text-decoration: none; }
+        img { max-width: 100%; display: block; }
+        button { cursor: pointer; border: none; background: none; font-family: inherit; }
+        ul { list-style: none; }
+
+        .page-wrapper { min-height: calc(100vh - var(--navbar-h)); display: flex; flex-direction: column; }
+        main { flex: 1; }
+
+        /*  NAVBAR  */
+        .navbar {
+            position   : fixed;
+            top        : 0; left: 0; right: 0;
+            z-index    : 1000;
+            height     : var(--navbar-h);
+            background : transparent;
+            transition : background-color 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+        }
+        .navbar.scrolled {
+            background-color: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow      : 0 8px 20px rgba(0,0,0,0.3);
+        }
+        .navbar__inner {
+            display    : flex;
+            align-items: center;
+            height     : 100%;
+            padding    : 0 4%;
+            gap        : var(--sp-6);
+        }
+
+        /*  Logo  */
+        .navbar__logo {
+            font-family   : var(--font-display);
+            font-size     : 34px;
+            letter-spacing: 2px;
+            color         : var(--brand);
+            flex-shrink   : 0;
+            transition    : text-shadow 0.2s ease;
+        }
+        .navbar__logo span { color: #ffffff; }
+        .navbar__logo:hover { text-shadow: 0 0 20px rgba(229,9,20,0.5); }
+
+        /*  Nav links  */
+        .navbar__nav { display: flex; align-items: center; gap: 4px; }
+        .navbar__nav-link {
+            position     : relative;
+            padding      : 8px 14px;
+            font-size    : 17px;
+            font-weight  : 500;
+            color        : #b3b3b3;
+            border-radius: var(--radius-sm);
+            transition   : color 0.2s ease;
+            white-space  : nowrap;
+        }
+        .navbar__nav-link::after {
+            content         : '';
+            position        : absolute;
+            bottom          : 2px;
+            left            : 50%;
+            transform       : translateX(-50%) scaleX(0);
+            transform-origin: center;
+            width           : 70%;
+            height          : 2px;
+            background      : var(--brand);
+            border-radius   : var(--radius-full);
+            transition      : transform 0.2s ease;
+        }
+        .navbar__nav-link:hover { color: #ffffff; }
+        .navbar__nav-link:hover::after { transform: translateX(-50%) scaleX(1); }
+        .navbar__nav-link.active { color: #ffffff; }
+        .navbar__nav-link.active::after { transform: translateX(-50%) scaleX(1); }
+
+        /*  Browse dropdown  */
+        .nav-browse { position: relative; }
+        .nav-browse__toggle {
+            display    : flex;
+            align-items: center;
+            gap        : 4px;
+            padding    : 8px 14px;
+            font-size  : 17px;
+            font-weight: 500;
+            color      : #b3b3b3;
+            border-radius: var(--radius-sm);
+            transition : color 0.2s ease;
+        }
+        .nav-browse__toggle:hover { color: #ffffff; }
+        .nav-browse__toggle svg { transition: transform 0.2s ease; }
+        .nav-browse.open .nav-browse__toggle { color: #ffffff; }
+        .nav-browse.open .nav-browse__toggle svg { transform: rotate(180deg); }
+        .nav-browse__panel {
+            position          : absolute;
+            top               : calc(100% + 10px);
+            left              : 0;
+            min-width         : 280px;
+            background        : rgba(20,20,20,0.97);
+            border            : 1px solid var(--border-medium);
+            border-radius     : var(--radius-lg);
+            box-shadow        : var(--shadow-lg);
+            padding           : var(--sp-3);
+            display           : grid;
+            grid-template-columns: 1fr 1fr;
+            gap               : 2px;
+            opacity           : 0;
+            pointer-events    : none;
+            transform         : translateY(-8px);
+            transition        : opacity 0.2s ease-out, transform 0.2s ease-out, visibility 0.2s;
+            visibility        : hidden;
+        }
+        .nav-browse.open .nav-browse__panel {
+            opacity: 1; pointer-events: all; transform: translateY(0); visibility: visible;
+        }
+        .nav-browse__category {
+            padding: var(--sp-2) var(--sp-3);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: #b3b3b3;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+        .nav-browse__category:hover { color: #ffffff; background: var(--bg-elevated); }
+
+        .navbar__spacer { flex: 1; }
+        .navbar__controls { display: flex; align-items: center; gap: var(--sp-2); }
+
+        /*  Search  */
+        .search { display: flex; align-items: center; position: relative; }
+        .search__toggle {
+            width: 36px; height: 36px;
+            border-radius: var(--radius-full);
+            display: flex; align-items: center; justify-content: center;
+            color: #e5e5e5;
+            transition: color 0.2s ease, transform 0.2s ease;
+            flex-shrink: 0;
+        }
+        .search__toggle:hover { color: #ffffff; transform: scale(1.1); }
+        .search.open .search__toggle { color: #ffffff; }
+        .search__input-wrap {
+            display: flex; align-items: center;
+            max-width: 0; overflow: hidden;
+            transition: max-width 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+            opacity: 0;
+        }
+        .search.open .search__input-wrap { max-width: 260px; opacity: 1; }
+        .search__input {
+            width: 240px;
+            padding: var(--sp-2) var(--sp-4);
+            background: rgba(0,0,0,0.75);
+            border: 1px solid #ffffff;
+            border-radius: var(--radius-sm);
+            color: #ffffff;
+            font-family: var(--font-body);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        .search__input::placeholder { color: #b3b3b3; }
+        .search__input:focus { border-color: #ffffff; }
+
+        .search__results {
+            position: absolute; top: calc(100% + 12px); right: 0;
+            width: 420px; max-height: 500px;
+            background: rgba(20,20,20,0.97);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow-y: auto;
+            opacity: 0; pointer-events: none;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out, visibility 0.2s;
+            visibility: hidden;
+            z-index: 1001;
+        }
+        .search.open .search__results.show {
+            opacity: 1; pointer-events: all; transform: translateY(0); visibility: visible;
+        }
+        .search__results-header {
+            padding: var(--sp-4) var(--sp-5);
+            font-size: 13px; font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+            text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .search__result-item {
+            display: flex; align-items: center; gap: var(--sp-3);
+            padding: var(--sp-3) var(--sp-5);
+            transition: background 0.2s ease;
+            text-decoration: none; color: inherit;
+        }
+        .search__result-item:hover { background: var(--bg-elevated); }
+        .search__result-poster {
+            width: 60px; height: 90px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            background: var(--bg-elevated);
+            flex-shrink: 0;
+        }
+        .search__result-poster-placeholder {
+            width: 60px; height: 90px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .search__result-info { flex: 1; min-width: 0; }
+        .search__result-title {
+            font-size: 14px; font-weight: 600; color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .search__result-meta {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 12px; color: var(--text-muted);
+        }
+        .search__result-type {
+            padding: 2px 6px; border-radius: var(--radius-sm);
+            background: rgba(229,9,20,0.15); color: var(--brand);
+            font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .search__result-rating {
+            display: flex; align-items: center; gap: 3px;
+        }
+        .search__no-results {
+            padding: var(--sp-8) var(--sp-5);
+            text-align: center; color: var(--text-muted);
+            font-size: 13px;
+        }
+        .search__loading {
+            padding: var(--sp-8) var(--sp-5);
+            text-align: center; color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /*  Icon buttons  */
+        .icon-btn {
+            position: relative;
+            width: 36px; height: 36px;
+            border-radius: var(--radius-full);
+            display: flex; align-items: center; justify-content: center;
+            color: #e5e5e5;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+        .icon-btn:hover { color: #ffffff; transform: scale(1.1); }
+        .icon-btn__badge {
+            position: absolute; top: 2px; right: 2px;
+            min-width: 16px; height: 16px;
+            background: var(--brand);
+            border-radius: var(--radius-full);
+            font-size: 10px; font-weight: 700; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 3px; line-height: 1;
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+        @@keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(229,9,20,0.6); }
+            50%       { box-shadow: 0 0 0 4px rgba(229,9,20,0); }
+        }
+
+        /*  Notifications  */
+        .notif-wrap { position: relative; }
+        .notif-panel {
+            position: absolute; top: calc(100% + 12px); right: 0;
+            width: 340px; max-height: 420px;
+            background: rgba(20,20,20,0.97);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            opacity: 0; pointer-events: none;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out, visibility 0.2s;
+            visibility: hidden;
+        }
+        .notif-wrap.open .notif-panel {
+            opacity: 1; pointer-events: all; transform: translateY(0); visibility: visible;
+        }
+        .notif-header {
+            padding: var(--sp-4) var(--sp-5);
+            font-size: 13px; font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+            text-transform: uppercase; letter-spacing: 0.06em;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .notif-see-all {
+            font-size: 11px; color: var(--brand); font-weight: 500;
+            text-transform: none; letter-spacing: 0;
+            transition: opacity 0.2s ease;
+        }
+        .notif-see-all:hover { opacity: 0.8; }
+        .notif-item {
+            display: flex; align-items: flex-start; gap: var(--sp-3);
+            padding: var(--sp-3) var(--sp-5);
+            transition: background 0.2s ease; cursor: pointer;
+        }
+        .notif-item:hover { background: var(--bg-elevated); }
+        .notif-item.unread { border-left: 3px solid var(--brand); }
+        .notif-item.read   { border-left: 3px solid transparent; }
+        .notif-item__icon { font-size: 20px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+        .notif-item__body { flex: 1; }
+        .notif-item__text { font-size: 13px; color: #ffffff; line-height: 1.4; }
+        .notif-item.read .notif-item__text { color: var(--text-secondary); }
+        .notif-item__time { font-size: 11px; color: var(--text-muted); margin-top: var(--sp-1); }
+
+        /*  Auth buttons  */
+        .auth-btn {
+            display: inline-flex; align-items: center;
+            padding: var(--sp-2) var(--sp-4);
+            border-radius: var(--radius-full);
+            font-size: 13px; font-weight: 600;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            white-space: nowrap;
+        }
+        .auth-btn--ghost { color: #e5e5e5; border: 1px solid var(--border-medium); }
+        .auth-btn--ghost:hover { color: #ffffff; border-color: rgba(255,255,255,0.4); background: var(--bg-elevated); }
+        .auth-btn--solid { background: var(--brand); color: #fff; border: 1px solid transparent; }
+        .auth-btn--solid:hover { background: var(--brand-hover); }
+
+        /*  Profile dropdown  */
+        .profile-wrap { position: relative; }
+        .profile-btn {
+            display: flex; align-items: center; gap: var(--sp-2);
+            padding: var(--sp-1) var(--sp-2);
+            border-radius: var(--radius-full);
+            transition: background 0.2s ease;
+        }
+        .profile-btn:hover { background: var(--bg-elevated); }
+        .profile-avatar {
+            width: 34px; height: 34px;
+            border-radius: var(--radius-full);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; color: #fff;
+            flex-shrink: 0; overflow: hidden;
+        }
+        .profile-btn__chevron { color: #e5e5e5; transition: transform 0.2s ease-out; }
+        .profile-wrap.open .profile-btn__chevron { transform: rotate(180deg); }
+        .profile-panel {
+            position: absolute; top: calc(100% + 12px); right: 0;
+            width: 260px;
+            background: rgba(20,20,20,0.97);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            opacity: 0; pointer-events: none;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out, visibility 0.2s;
+            visibility: hidden;
+        }
+        .profile-wrap.open .profile-panel {
+            opacity: 1; pointer-events: all; transform: translateY(0); visibility: visible;
+        }
+        .profile-panel__user {
+            display: flex; align-items: center; gap: var(--sp-3);
+            padding: var(--sp-4) var(--sp-5);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .profile-panel__name  { font-size: 14px; font-weight: 600; color: #ffffff; }
+        .profile-panel__email { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .plan-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: var(--brand-dim); color: var(--brand);
+            border: 1px solid rgba(229,9,20,0.3);
+            border-radius: var(--radius-full);
+            padding: 2px 8px; font-size: 10px; font-weight: 700;
+            letter-spacing: 0.05em; text-transform: uppercase; margin-top: 4px;
+        }
+        .profile-panel__section { padding: var(--sp-3); border-bottom: 1px solid var(--border-subtle); }
+        .profile-panel__label {
+            font-size: 10px; font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            padding: var(--sp-1) var(--sp-2); margin-bottom: var(--sp-1);
+        }
+        .profile-item {
+            display: flex; align-items: center; gap: var(--sp-3);
+            padding: var(--sp-2) var(--sp-3);
+            border-radius: var(--radius-md);
+            cursor: pointer; transition: background 0.2s ease;
+            width: 100%; text-align: left;
+        }
+        .profile-item:hover { background: var(--bg-elevated); }
+        .profile-item.active { background: var(--bg-elevated); }
+        .profile-item__name  { font-size: 13px; font-weight: 500; flex: 1; color: #ffffff; }
+        .profile-item__kid   { font-size: 10px; color: var(--text-muted); }
+        .profile-item__check { color: var(--brand); opacity: 0; }
+        .profile-item.active .profile-item__check { opacity: 1; }
+        .profile-panel__actions { padding: var(--sp-2); }
+        .profile-action {
+            display: flex; align-items: center; gap: var(--sp-3);
+            padding: var(--sp-2) var(--sp-3);
+            border-radius: var(--radius-md);
+            font-size: 13px; color: var(--text-secondary);
+            transition: color 0.2s ease, background 0.2s ease;
+            width: 100%; text-align: left;
+        }
+        .profile-action:hover { color: #ffffff; background: var(--bg-elevated); }
+        .profile-action.danger:hover { color: #ff4444; }
+
+        /*  Hamburger  */
+        .hamburger {
+            display: none; flex-direction: column; gap: 5px;
+            padding: var(--sp-2); border-radius: var(--radius-sm);
+            transition: background 0.2s ease;
+        }
+        .hamburger:hover { background: var(--bg-elevated); }
+        .hamburger__line {
+            width: 22px; height: 2px;
+            background: #e5e5e5;
+            border-radius: var(--radius-full);
+            transition: transform 0.3s ease, opacity 0.3s ease, background 0.2s ease;
+        }
+        .hamburger.open .hamburger__line:nth-child(1) { transform: translateY(7px) rotate(45deg); background: #ffffff; }
+        .hamburger.open .hamburger__line:nth-child(2) { opacity: 0; }
+        .hamburger.open .hamburger__line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: #ffffff; }
+
+        /*  Mobile drawer  */
+        .mobile-menu {
+            position: fixed; top: var(--navbar-h); left: 0; right: 0;
+            background: rgba(20,20,20,0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-medium);
+            box-shadow: var(--shadow-md);
+            padding: var(--sp-4);
+            display: none; flex-direction: column; gap: var(--sp-1);
+            z-index: 999;
+            animation: slideDown 0.3s ease both;
+        }
+        @@keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .mobile-menu__link {
+            padding: var(--sp-3) var(--sp-4);
+            border-radius: var(--radius-md);
+            font-size: 15px; color: #b3b3b3;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+        .mobile-menu__link:hover,
+        .mobile-menu__link.active { color: #ffffff; background: var(--bg-elevated); }
+        .mobile-menu__divider { height: 1px; background: var(--border-subtle); margin: var(--sp-2) 0; }
+
+        /*  Footer  */
+        .footer {
+            background: var(--bg-void);
+            border-top: 1px solid var(--border-subtle);
+            padding: var(--sp-10) var(--sp-6) var(--sp-6);
+        }
+        .footer__grid {
+            max-width: 1200px; margin: 0 auto;
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: var(--sp-8);
+        }
+        .footer__brand-name { font-family: var(--font-display); font-size: 32px; letter-spacing: 2px; color: var(--brand); }
+        .footer__brand-name span { color: var(--text-primary); }
+        .footer__tagline { font-size: 13px; color: var(--text-muted); margin-top: var(--sp-2); line-height: 1.6; }
+        .footer__social { display: flex; gap: var(--sp-2); margin-top: var(--sp-4); }
+        .social-btn {
+            width: 36px; height: 36px; border-radius: var(--radius-full);
+            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; color: var(--text-secondary);
+            transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+        .social-btn:hover { color: var(--text-primary); background: var(--bg-elevated); border-color: var(--border-medium); }
+        .footer__col-title {
+            font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--text-muted); margin-bottom: var(--sp-4);
+        }
+        .footer__links { display: flex; flex-direction: column; gap: var(--sp-3); }
+        .footer__link { font-size: 13px; color: var(--text-secondary); transition: color 0.2s ease; }
+        .footer__link:hover { color: var(--text-primary); }
+        .footer__bottom {
+            max-width: 1200px; margin: var(--sp-8) auto 0;
+            padding-top: var(--sp-5); border-top: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: var(--sp-3);
+        }
+        .footer__copy { font-size: 12px; color: var(--text-muted); }
+        .footer__legal { display: flex; gap: var(--sp-5); }
+        .footer__legal a { font-size: 12px; color: var(--text-muted); }
+        .footer__legal a:hover { color: var(--text-secondary); }
+
+        /*  Toast  */
+        .toast {
+            position: fixed; bottom: 32px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--bg-surface); border: 1px solid var(--border-medium);
+            border-radius: var(--radius-full); box-shadow: var(--shadow-md);
+            padding: var(--sp-3) var(--sp-5); font-size: 13px; color: var(--text-primary);
+            white-space: nowrap; z-index: 2000;
+            transition: transform 350ms var(--ease-spring), opacity 300ms ease;
+            opacity: 0; pointer-events: none;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /*  Backdrop  */
+        .backdrop { position: fixed; inset: 0; z-index: 900; display: none; }
+        .backdrop.active { display: block; }
+
+        /*  Skip link  */
+        .skip-link {
+            position: absolute; top: -100px; left: var(--sp-4);
+            background: var(--brand); color: #fff;
+            padding: var(--sp-2) var(--sp-4); border-radius: var(--radius-sm);
+            font-size: 14px; font-weight: 600; z-index: 9999;
+            transition: top 0.2s ease;
+        }
+        .skip-link:focus { top: var(--sp-4); }
+
+        /*  Scrollbar  */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-medium); }
+
+        /*  Responsive  */
+        @@media (max-width: 1024px) {
+            .navbar__nav { display: none; }
+            .nav-browse  { display: none; }
+            .hamburger   { display: flex; }
+        }
+        @@media (max-width: 768px) {
+            .navbar__inner { padding: 0 var(--sp-4); gap: var(--sp-3); }
+            .search { display: none; }
+            .footer__grid { grid-template-columns: 1fr 1fr; }
+        }
+        @@media (max-width: 480px) {
+            .footer__grid { grid-template-columns: 1fr; }
+            .footer__bottom { flex-direction: column; align-items: flex-start; }
+        }
     </style>
 </head>
-
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
 
-    @* ══════════════════════════════════════════════════════════════
-       NAVBAR
-       ══════════════════════════════════════════════════════════════
-       • All content is inside .navbar__inner (flex row)
-       • Left  → logo + primary nav links
-       • Right → search, notifications, profile avatar
-       • Hamburger icon visible on mobile only (CSS hides on desktop)
-    ══════════════════════════════════════════════════════════════ *@
     <nav class="navbar" id="mainNavbar" role="navigation" aria-label="Main navigation">
         <div class="navbar__inner">
 
-            <!-- ── Logo ───────────────────────────────────────── -->
-            <a href="/" class="navbar__logo" aria-label="WatchIt Home">
-                WATCH<span>IT</span>
-            </a>
+            <a href="/" class="navbar__logo" aria-label="WatchIt Home">WATCH<span>IT</span></a>
 
-            <!-- ── Primary Nav Links ─────────────────────────── -->
-            @* We loop over a simple string array to render each link.
-               The activePage variable (set in @{} block) controls which
-               link gets the .active CSS class + underline indicator. *@
             <ul class="navbar__nav" role="list">
                 @foreach (var link in new[] {
                     new { Label = "Home",     Href = "/" },
-                                new { Label = "Movies",   Href = "/Movie/GetAllMovies" },
-                                new { Label = "Series",   Href = "/Series/GetAllSeries" },
+                    new { Label = "Movies",   Href = "/Movie/GetAllMovies" },
+                    new { Label = "Series",   Href = "/Series/GetAllSeries" },
                     new { Label = "My List",  Href = "/MyList" }
                 })
                 {
                     <li>
                         <a href="@link.Href"
-                               class="navbar__nav-link @(activePage == link.Label ? "active" : "")"
-                            @(activePage == link.Label ? "aria-current=page" : "")>
+                           class="navbar__nav-link @(activePage == link.Label ? "active" : "")"
+                           @(activePage == link.Label ? "aria-current=page" : "")>
                             @link.Label
                         </a>
                     </li>
                 }
             </ul>
 
-            <!-- ── Browse / Categories Mega-Dropdown ─────────── -->
-            @* .nav-browse uses a data-dropdown="browse" attribute.
-               The generic JS openDropdown() function reads this to
-               know which element to toggle when the button is clicked. *@
             <div class="nav-browse" id="dd-browse">
                 <button class="nav-browse__toggle"
                         aria-haspopup="true"
                         aria-expanded="false"
                         data-dropdown="browse">
                     Browse
-                    <!-- Inline SVG chevron icon (no external dependency) -->
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                         <polyline points="6 9 12 15 18 9" />
                     </svg>
                 </button>
-
                 <div class="nav-browse__panel" role="menu">
-                    @* Render each category from the mock array as a link *@
-                    @foreach (var cat in navCategories)
+                    @foreach (var cat in (ViewBag.NavCategories as List<Netflix_clone.Models.Category> ?? new List<Netflix_clone.Models.Category>()))
                     {
-                        <a href="/Home/Browse?category=@cat.ToLower()" class="nav-browse__category" role="menuitem">
-                            @cat
-                        </a>
+                        <a asp-controller="Category" asp-action="Browse" asp-route-name="@cat.Name" class="nav-browse__category" role="menuitem">@cat.Name</a>
                     }
                 </div>
             </div>
 
-            <!-- ── Spacer (pushes controls to the right) ─────── -->
             <div class="navbar__spacer" aria-hidden="true"></div>
 
-            <!-- ── Right Controls ────────────────────────────── -->
             <div class="navbar__controls">
 
-                <!-- Search (expand-on-click) -->
                 <div class="search" id="searchWrap">
-                    <button class="search__toggle icon-btn"
+                    <button class="search__toggle"
                             id="searchToggle"
                             aria-label="Toggle search"
                             aria-expanded="false">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <circle cx="11" cy="11" r="8" />
                             <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
@@ -1103,7 +670,7 @@
                         <input class="search__input"
                                type="search"
                                id="searchInput"
-                               placeholder="Search movies, series…"
+                               placeholder="Search movies, series"
                                aria-label="Search"
                                autocomplete="off" />
                         <button class="search__submit-btn"
@@ -1117,9 +684,12 @@
                             </svg>
                         </button>
                     </div>
+                    <div class="search__results" id="searchResults">
+                        <div class="search__results-header">Search Results</div>
+                        <div id="searchResultsContent"></div>
+                    </div>
                 </div>
 
-                <!-- Notification Bell -->
                 <div class="notif-wrap" id="dd-notif">
                     <button class="icon-btn"
                             id="notifBtn"
@@ -1127,24 +697,23 @@
                             aria-haspopup="true"
                             aria-expanded="false"
                             data-dropdown="notif">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                         </svg>
-                        @* Only render the badge if there are unread notifications *@
                         @if (unreadCount > 0)
                         {
                             <span class="icon-btn__badge" aria-label="@unreadCount unread">@unreadCount</span>
                         }
                     </button>
-
                     <div class="notif-panel" role="menu" aria-label="Notifications">
-                        <div class="notif-header">Notifications</div>
-                        @* Render each notification item. Unread items have a red left border (via CSS). *@
+                        <div class="notif-header">
+                            Notifications
+                            <a href="#" class="notif-see-all">See all</a>
+                        </div>
                         @foreach (var notif in notifications)
                         {
-                            <div class="notif-item @(notif.IsRead ? "read" : "unread")" role="menuitem">
+                            <div class="notif-item @(notif.IsRead ? "read" : "unread")" role="menuitem" tabindex="0">
                                 <div class="notif-item__icon" aria-hidden="true">@notif.Icon</div>
                                 <div class="notif-item__body">
                                     <div class="notif-item__text">@notif.Text</div>
@@ -1155,156 +724,150 @@
                     </div>
                 </div>
 
-                <!-- Auth: Login/Register (logged out) OR Profile dropdown (logged in) -->
                 @if (!isAuthenticated)
                 {
-                    <!-- Not logged in — show Login and Register buttons -->
-                    <a asp-area="Identity" asp-page="/Account/Login"
-                       class="auth-btn auth-btn--ghost">Sign In</a>
-                    <a asp-area="Identity" asp-page="/Account/Register"
-                       class="auth-btn auth-btn--solid">Register</a>
+                    <a asp-area="Identity" asp-page="/Account/Login"    class="auth-btn auth-btn--ghost">Sign In</a>
+                    <a asp-area="Identity" asp-page="/Account/Register" class="auth-btn auth-btn--solid">Register</a>
                 }
                 else
                 {
-                <!-- Profile Avatar & Dropdown (logged in) -->
-                <div class="profile-wrap" id="dd-profile">
-                    <button class="profile-btn"
-                            id="profileBtn"
-                            aria-haspopup="true"
-                            aria-expanded="false"
-                            data-dropdown="profile">
-                        <div class="profile-avatar"
-                             style="background: @currentUser.AvatarColor"
-                             aria-hidden="true">
-                            @currentUser.Initials
-                        </div>
-                        <svg class="profile-btn__chevron" width="14" height="14"
-                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <polyline points="6 9 12 15 18 9" />
-                        </svg>
-                    </button>
-
-                    <div class="profile-panel" role="menu" aria-label="Account menu">
-
-                        <!-- User Info Strip -->
-                        <div class="profile-panel__user">
+                    <div class="profile-wrap" id="dd-profile">
+                        <button class="profile-btn"
+                                id="profileBtn"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                                data-dropdown="profile">
                             <div class="profile-avatar"
-                                 style="background: @currentUser.AvatarColor; width:42px; height:42px; font-size:15px;"
+                                 style="background: @currentUser.AvatarColor"
                                  aria-hidden="true">
                                 @currentUser.Initials
                             </div>
-                            <div>
-                                <div class="profile-panel__name">@currentUser.Name</div>
-                                <div class="profile-panel__email">@currentUser.Email</div>
-                                <div class="plan-badge">⚡ @subscriptionPlan</div>
-                            </div>
-                        </div>
+                            <svg class="profile-btn__chevron" width="14" height="14"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </button>
 
-                        <!-- Profile Switcher -->
-                        <div class="profile-panel__section">
-                            <div class="profile-panel__label">Switch Profile</div>
-                            @{ int pci = 0; }
-                            @foreach (var p in userProfiles)
-                            {
-                                var pColor   = profileColors[pci % profileColors.Length];
-                                pci++;
-                                var pInitial = p.Name.Length > 0 ? p.Name.Substring(0, 1).ToUpper() : "?";
-                                var isActive = activeProfileId.HasValue && activeProfileId.Value == p.Id;
-                                <form asp-controller="Profiles" asp-action="SelectProfile" asp-route-id="@p.Id"
-                                      method="post" style="margin:0">
+                        <div class="profile-panel" role="menu" aria-label="Account menu">
+                            <div class="profile-panel__user">
+                                <div class="profile-avatar"
+                                     style="background: @currentUser.AvatarColor; width:42px; height:42px; font-size:15px;"
+                                     aria-hidden="true">
+                                    @currentUser.Initials
+                                </div>
+                                <div>
+                                    <div class="profile-panel__name">@currentUser.Name</div>
+                                    <div class="profile-panel__email">@currentUser.Email</div>
+                                    <div class="plan-badge"> @subscriptionPlan</div>
+                                </div>
+                            </div>
+
+                            <div class="profile-panel__section">
+                                <div class="profile-panel__label">Switch Profile</div>
+                                @{ int pci = 0; }
+                                @foreach (var p in userProfiles)
+                                {
+                                    var pColor   = profileColors[pci % profileColors.Length];
+                                    pci++;
+                                    var pInitial = p.Name.Length > 0 ? p.Name.Substring(0, 1).ToUpper() : "?";
+                                    var isActive = activeProfileId.HasValue && activeProfileId.Value == p.Id;
+                                    <form asp-controller="Profiles" asp-action="SelectProfile" asp-route-id="@p.Id" method="post" style="margin:0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="profile-item @(isActive ? "active" : "")"
+                                                role="menuitem"
+                                                aria-current="@isActive.ToString().ToLower()">
+                                            <div class="profile-avatar"
+                                                 style="background: @pColor; width:30px; height:30px; font-size:12px; border-radius: 8px;"
+                                                 aria-hidden="true">
+                                                @if (!string.IsNullOrWhiteSpace(p.Image))
+                                                {
+                                                    <img src="@p.Image" alt="@p.Name" style="width:100%;height:100%;object-fit:cover;border-radius:8px"
+                                                         onerror="this.style.display='none';this.parentElement.textContent='@pInitial'" />
+                                                }
+                                                else
+                                                {
+                                                    @pInitial
+                                                }
+                                            </div>
+                                            <span class="profile-item__name">@p.Name</span>
+                                            @if (p.IsKid)
+                                            {
+                                                <span class="profile-item__kid">KIDS</span>
+                                            }
+                                            <svg class="profile-item__check" width="14" height="14"
+                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                }
+                                @if (!userProfiles.Any())
+                                {
+                                    <div class="profile-item">
+                                        <span class="profile-item__name" style="color:var(--text-muted)">No profiles yet</span>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="profile-panel__actions">
+                                <a asp-controller="Profiles" asp-action="ManageProfiles" class="profile-action" role="menuitem">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                        <circle cx="12" cy="7" r="4" />
+                                    </svg>
+                                    Manage Profiles
+                                </a>
+                                <a href="/Subscription" class="profile-action" role="menuitem">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <rect x="1" y="4" width="22" height="16" rx="2" />
+                                        <line x1="1" y1="10" x2="23" y2="10" />
+                                    </svg>
+                                    Subscription
+                                </a>
+                                <a href="/Home/Error" class="profile-action" role="menuitem">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                                    </svg>
+                                    Help Center
+                                </a>
+                                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/" method="post" style="margin:0;">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit"
-                                            class="profile-item @(isActive ? "active" : "")"
-                                            role="menuitem"
-                                            aria-current="@isActive.ToString().ToLower()">
-                                        <div class="profile-avatar"
-                                             style="background: @pColor; width:30px; height:30px; font-size:12px; border-radius: 8px;"
-                                             aria-hidden="true">
-                                            @if (!string.IsNullOrWhiteSpace(p.Image))
-                                            {
-                                                <img src="@p.Image" alt="@p.Name" style="width:100%;height:100%;object-fit:cover;border-radius:8px"
-                                                     onerror="this.style.display='none';this.parentElement.textContent='@pInitial'" />
-                                            }
-                                            else
-                                            {
-                                                @pInitial
-                                            }
-                                        </div>
-                                        <span class="profile-item__name">@p.Name</span>
-                                        @if (p.IsKid)
-                                        {
-                                            <span class="profile-item__kid">KIDS</span>
-                                        }
-                                        <svg class="profile-item__check" width="14" height="14"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                            <polyline points="20 6 9 17 4 12" />
+                                    <button type="submit" class="profile-action danger" role="menuitem" style="width:100%;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                            <polyline points="16 17 21 12 16 7" />
+                                            <line x1="21" y1="12" x2="9" y2="12" />
                                         </svg>
+                                        Sign Out
                                     </button>
                                 </form>
-                            }
-                            @if (!userProfiles.Any())
-                            {
-                                <a asp-controller="Profiles" asp-action="SelectProfile" class="profile-item" role="menuitem">
-                                    <span class="profile-item__name" style="color:var(--text-muted)">No profiles yet</span>
-                                </a>
-                            }
-                        </div>
-
-                        <!-- Action Links -->
-                        <div class="profile-panel__actions">
-                            <a asp-controller="Profiles" asp-action="ManageProfiles" class="profile-action" role="menuitem">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                    <circle cx="12" cy="7" r="4" />
-                                </svg>
-                                Manage Profiles
-                            </a>
-                            <a href="/Subscription" class="profile-action" role="menuitem">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="1" y="4" width="22" height="16" rx="2" />
-                                    <line x1="1" y1="10" x2="23" y2="10" />
-                                </svg>
-                                Subscription
-                            </a>
-                            <!-- Sign Out — posts to Identity logout endpoint -->
-                            <form asp-area="Identity" asp-page="/Account/Logout"
-                                  asp-route-returnUrl="/" method="post" style="margin:0;">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="profile-action danger" role="menuitem" style="width:100%;">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                                        <polyline points="16 17 21 12 16 7" />
-                                        <line x1="21" y1="12" x2="9" y2="12" />
-                                    </svg>
-                                    Sign Out
-                                </button>
-                            </form>
+                            </div>
                         </div>
                     </div>
-                </div>
                 }
 
-                <!-- Hamburger (mobile only) -->
                 <button class="hamburger" id="hamburger" aria-label="Toggle mobile menu" aria-expanded="false">
                     <span class="hamburger__line"></span>
                     <span class="hamburger__line"></span>
                     <span class="hamburger__line"></span>
                 </button>
 
-            </div><!-- /.navbar__controls -->
-        </div><!-- /.navbar__inner -->
+            </div>
+        </div>
     </nav>
 
-    @* ── Mobile Menu (hidden until hamburger is clicked) ──────── *@
     <div class="mobile-menu" id="mobileMenu" role="navigation" aria-label="Mobile navigation" style="display:none;">
         <a href="/" class="mobile-menu__link @(activePage == "Home" ? "active" : "")">Home</a>
-        <a href="/Browse/Movies" class="mobile-menu__link @(activePage == "Movies" ? "active" : "")">Movies</a>
-        <a href="/Browse/Series" class="mobile-menu__link @(activePage == "Series" ? "active" : "")">Series</a>
+        <a href="/Movie/GetAllMovies" class="mobile-menu__link @(activePage == "Movies" ? "active" : "")">Movies</a>
+        <a href="/Series/GetAllSeries" class="mobile-menu__link @(activePage == "Series" ? "active" : "")">Series</a>
         <a href="/MyList" class="mobile-menu__link @(activePage == "My List" ? "active" : "")">My List</a>
         <div class="mobile-menu__divider" aria-hidden="true"></div>
-        @foreach (var cat in navCategories)
+        @foreach (var cat in (ViewBag.NavCategories as List<Netflix_clone.Models.Category> ?? new List<Netflix_clone.Models.Category>()))
         {
-            <a href="/Browse?category=@cat.ToLower()" class="mobile-menu__link">@cat</a>
+            <a asp-controller="Category" asp-action="Browse" asp-route-name="@cat.Name" class="mobile-menu__link">@cat.Name</a>
         }
         <div class="mobile-menu__divider" aria-hidden="true"></div>
         @if (!isAuthenticated)
@@ -1316,92 +879,61 @@
         {
             <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/" method="post" style="margin:0;">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="mobile-menu__link" style="width:100%; text-align:left; background:none; border:none; cursor:pointer; color:inherit; font:inherit; padding: var(--sp-3) var(--sp-4);">
+                <button type="submit" class="mobile-menu__link" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;color:inherit;font:inherit;padding:var(--sp-3) var(--sp-4);">
                     Sign Out
                 </button>
             </form>
         }
     </div>
 
-    @* ── Backdrop overlay (closes any open dropdown on click outside) *@
     <div class="backdrop" id="backdrop" aria-hidden="true"></div>
 
-    @* ══════════════════════════════════════════════════════════════
-       MAIN CONTENT AREA
-       ══════════════════════════════════════════════════════════════
-       @RenderBody() is a Razor directive that injects the content
-       of the specific page being rendered (e.g. Home/Index.cshtml).
-       EVERYTHING above this point is shared across all pages.
-    ══════════════════════════════════════════════════════════════ *@
     <div class="page-wrapper">
         <main id="main-content" role="main">
             @RenderBody()
         </main>
 
-        @* ══════════════════════════════════════════════════════════
-           FOOTER
-           ══════════════════════════════════════════════════════════
-           Four-column grid: brand | company | genres | legal
-           Collapses to 2-col on tablet, 1-col on mobile (CSS handles it).
-        ══════════════════════════════════════════════════════════ *@
         <footer class="footer" role="contentinfo">
             <div class="footer__grid">
-
-                <!-- Brand Column -->
                 <div>
                     <div class="footer__brand-name">WATCH<span>IT</span></div>
-                    <p class="footer__tagline">
-                        Stream thousands of movies and series<br>
-                        anytime, on any screen.
-                    </p>
+                    <p class="footer__tagline">Stream thousands of movies and series<br>anytime, on any screen.</p>
                     <div class="footer__social" aria-label="Social media links">
-                        <a href="#" class="social-btn" aria-label="X / Twitter">𝕏</a>
+                        <a href="#" class="social-btn" aria-label="X / Twitter"></a>
                         <a href="#" class="social-btn" aria-label="Instagram">ig</a>
-                        <a href="#" class="social-btn" aria-label="YouTube">▶</a>
+                        <a href="#" class="social-btn" aria-label="YouTube"></a>
                     </div>
                 </div>
-
-                <!-- Company Column -->
                 <div>
                     <div class="footer__col-title">Company</div>
                     <ul class="footer__links" role="list">
-                        <li><a href="/About" class="footer__link">About Us</a></li>
+                        <li><a href="/About"   class="footer__link">About Us</a></li>
                         <li><a href="/Careers" class="footer__link">Careers</a></li>
-                        <li><a href="/Press" class="footer__link">Press</a></li>
+                        <li><a href="/Press"   class="footer__link">Press</a></li>
                         <li><a href="/Contact" class="footer__link">Contact</a></li>
                     </ul>
                 </div>
-
-                <!-- Genres Column (dynamic from mock data) -->
                 <div>
                     <div class="footer__col-title">Genres</div>
                     <ul class="footer__links" role="list">
-                        @* Show first 5 categories only so the footer doesn't overflow *@
-                        @foreach (var cat in navCategories.Take(5))
+                        @foreach (var cat in (ViewBag.NavCategories as List<Netflix_clone.Models.Category> ?? new List<Netflix_clone.Models.Category>()).Take(5))
                         {
-                            <li><a href="/Browse?category=@cat.ToLower()" class="footer__link">@cat</a></li>
+                            <li><a asp-controller="Category" asp-action="Browse" asp-route-name="@cat.Name" class="footer__link">@cat.Name</a></li>
                         }
                     </ul>
                 </div>
-
-                <!-- Help Column -->
                 <div>
                     <div class="footer__col-title">Help</div>
                     <ul class="footer__links" role="list">
-                        <li><a href="/Faq" class="footer__link">FAQ</a></li>
-                        <li><a href="/Subscription" class="footer__link">Plans & Pricing</a></li>
-                        <li><a href="/Help" class="footer__link">Help Centre</a></li>
-                        <li><a href="/Devices" class="footer__link">Supported Devices</a></li>
+                        <li><a href="/Faq"          class="footer__link">FAQ</a></li>
+                        <li><a href="/Subscription" class="footer__link">Plans &amp; Pricing</a></li>
+                        <li><a href="/Help"         class="footer__link">Help Centre</a></li>
+                        <li><a href="/Devices"      class="footer__link">Supported Devices</a></li>
                     </ul>
                 </div>
-
-            </div><!-- /.footer__grid -->
-
+            </div>
             <div class="footer__bottom">
-                <span class="footer__copy">
-                    © @DateTime.Now.Year WatchIt Inc. All rights reserved.
-                    @* @DateTime.Now.Year runs server-side, so the copyright year is always current *@
-                </span>
+                <span class="footer__copy"> @DateTime.Now.Year WatchIt Inc. All rights reserved.</span>
                 <nav class="footer__legal" aria-label="Legal links">
                     <a href="/Privacy">Privacy Policy</a>
                     <a href="/Terms">Terms of Use</a>
@@ -1409,263 +941,227 @@
                 </nav>
             </div>
         </footer>
-    </div><!-- /.page-wrapper -->
-    @* ══════════════════════════════════════════════════════════════
-       TOAST ELEMENT
-       Lives at the bottom of <body> so it floats above everything.
-       JS controls the .show class to animate it in/out.
-    ══════════════════════════════════════════════════════════════ *@
+    </div>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    @* ══════════════════════════════════════════════════════════════
-       @RenderSection("Scripts", required: false)
-       ══════════════════════════════════════════════════════════════
-       Allows individual pages to inject their own <script> tags at
-       the end of <body>. required: false means pages that have no
-       extra scripts won't throw an error.
-    ══════════════════════════════════════════════════════════════ *@
     @RenderSection("Scripts", required: false)
 
-    @* ══════════════════════════════════════════════════════════════
-       INLINE JAVASCRIPT
-       ══════════════════════════════════════════════════════════════
-       Organised into clearly labelled sections:
-         A. Navbar scroll effect
-         B. Generic dropdown engine
-         C. Search expand/collapse
-         D. Hamburger / mobile menu
-         E. Profile switcher + toast
-         F. Close-on-outside-click (backdrop)
-    ══════════════════════════════════════════════════════════════ *@
     <script>
-            // ── A. NAVBAR SCROLL EFFECT ─────────────────────────────────────
-            // When the user scrolls more than 10px, add the .scrolled class to
-            // the navbar. CSS then applies a darker background + stronger shadow.
-            // We use requestAnimationFrame to debounce frequent scroll events
-            // and avoid layout thrashing.
-            (function () {
-                const navbar = document.getElementById('mainNavbar');
-                let ticking = false;   // prevents redundant RAF calls
-
-                function onScroll() {
-                    if (!ticking) {
-                        window.requestAnimationFrame(function () {
-                            navbar.classList.toggle('scrolled', window.scrollY > 10);
-                            ticking = false;
-                        });
-                        ticking = true;
-                    }
+        (function () {
+            var navbar = document.getElementById('mainNavbar');
+            var ticking = false;
+            function onScroll() {
+                if (!ticking) {
+                    window.requestAnimationFrame(function () {
+                        navbar.classList.toggle('scrolled', window.scrollY > 0);
+                        ticking = false;
+                    });
+                    ticking = true;
                 }
+            }
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        })();
 
-                window.addEventListener('scroll', onScroll, { passive: true });
-                onScroll(); // run once on load in case page is already scrolled
-            })();
+        (function () {
+            var dropdowns = {
+                browse  : document.getElementById('dd-browse'),
+                notif   : document.getElementById('dd-notif'),
+                profile : document.getElementById('dd-profile')
+            };
+            var backdrop = document.getElementById('backdrop');
+            var currentOpen = null;
 
-
-            // ── B. GENERIC DROPDOWN ENGINE ──────────────────────────────────
-            // Rather than writing open/close logic three times (browse, notif,
-            // profile), we have ONE function that handles all dropdowns.
-            //
-            // Convention: the wrapper element has id="dd-{name}" and the
-            // toggle button has data-dropdown="{name}". The JS reads the
-            // data-dropdown attribute to find the correct wrapper.
-            (function () {
-                // Map of dropdown name → wrapper element
-                const dropdowns = {
-                    browse  : document.getElementById('dd-browse'),
-                    notif   : document.getElementById('dd-notif'),
-                    profile : document.getElementById('dd-profile')
-                };
-
-                const backdrop = document.getElementById('backdrop');
-
-                // currentOpen tracks which dropdown is open (null = all closed)
-                let currentOpen = null;
-
-                /**
-                 * Open a specific dropdown and close any previously open one.
-                 * param {string} name - key in the dropdowns map
-                 */
-                window.openDropdown = function (name) {
-                    // If this dropdown is already open, close it (toggle)
-                    if (currentOpen === name) {
-                        closeAll();
-                        return;
-                    }
-                    closeAll();   // close any other open dropdown first
-
-                    const el = dropdowns[name];
+            function closeAll() {
+                Object.values(dropdowns).forEach(function (el) {
                     if (!el) return;
-
-                    el.classList.add('open');
-                    backdrop.classList.add('active');  // show backdrop overlay
-                    currentOpen = name;
-
-                    // Update aria-expanded on the toggle button for accessibility
-                    const btn = el.querySelector('[data-dropdown]');
-                    if (btn) btn.setAttribute('aria-expanded', 'true');
-                };
-
-                /**
-                 * Close all dropdowns and hide backdrop.
-                 */
-                function closeAll() {
-                    Object.values(dropdowns).forEach(el => {
-                        if (el) {
-                            el.classList.remove('open');
-                            const btn = el.querySelector('[data-dropdown]');
-                            if (btn) btn.setAttribute('aria-expanded', 'false');
-                        }
-                    });
-                    backdrop.classList.remove('active');
-                    currentOpen = null;
-                }
-
-                // Attach click listeners to every toggle button
-                document.querySelectorAll('[data-dropdown]').forEach(function (btn) {
-                    btn.addEventListener('click', function (e) {
-                        e.stopPropagation();   // prevent click from bubbling to backdrop
-                        openDropdown(btn.dataset.dropdown);
-                    });
+                    el.classList.remove('open');
+                    var btn = el.querySelector('[data-dropdown]');
+                    if (btn) btn.setAttribute('aria-expanded', 'false');
                 });
+                backdrop.classList.remove('active');
+                currentOpen = null;
+            }
 
-                // Clicking the backdrop closes all dropdowns
-                backdrop.addEventListener('click', closeAll);
+            window.openDropdown = function (name) {
+                if (currentOpen === name) { closeAll(); return; }
+                closeAll();
+                var el = dropdowns[name];
+                if (!el) return;
+                el.classList.add('open');
+                backdrop.classList.add('active');
+                currentOpen = name;
+                var btn = el.querySelector('[data-dropdown]');
+                if (btn) btn.setAttribute('aria-expanded', 'true');
+            };
 
-                // Pressing Escape also closes all dropdowns (keyboard accessibility)
-                document.addEventListener('keydown', function (e) {
-                    if (e.key === 'Escape') closeAll();
-                });
-            })();
-
-
-            // ── C. SEARCH EXPAND / COLLAPSE ────────────────────────────────
-            // Clicking the search icon expands the input field.
-            // Pressing Escape or clicking outside collapses it.
-            (function () {
-                const wrap    = document.getElementById('searchWrap');
-                const toggle  = document.getElementById('searchToggle');
-                const input   = document.getElementById('searchInput');
-                const submitBtn = document.getElementById('searchSubmitBtn');
-
-                if (!wrap || !toggle || !input) return;
-
-                toggle.addEventListener('click', function (e) {
+            document.querySelectorAll('[data-dropdown]').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
                     e.stopPropagation();
-                    const isOpen = wrap.classList.toggle('open');
-                    toggle.setAttribute('aria-expanded', String(isOpen));
-
-                    if (isOpen) {
-                        setTimeout(function () { input.focus(); }, 300);
-                    }
+                    openDropdown(btn.dataset.dropdown);
                 });
+            });
 
-                input.addEventListener('keydown', function (e) {
-                    if (e.key === 'Escape') {
+            backdrop.addEventListener('click', closeAll);
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeAll();
+                    var wrap = document.getElementById('searchWrap');
+                    if (wrap) {
                         wrap.classList.remove('open');
-                        toggle.setAttribute('aria-expanded', 'false');
-                        toggle.focus();
-                    } else if (e.key === 'Enter') {
-                        e.preventDefault();
-                        performSearch();
-                    }
-                });
-
-                if (submitBtn) {
-                    submitBtn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        performSearch();
-                    });
-                }
-
-                document.addEventListener('click', function (e) {
-                    if (!wrap.contains(e.target)) {
-                        wrap.classList.remove('open');
-                        toggle.setAttribute('aria-expanded', 'false');
-                    }
-                });
-
-                function performSearch() {
-                    const query = input.value.trim();
-                    if (query) {
-                        window.location.href = '/Search/Index?query=' + encodeURIComponent(query);
+                        var toggle = document.getElementById('searchToggle');
+                        if (toggle) toggle.setAttribute('aria-expanded', 'false');
                     }
                 }
-            })();
+            });
+        })();
 
+        (function () {
+            var wrap   = document.getElementById('searchWrap');
+            var toggle = document.getElementById('searchToggle');
+            var input  = document.getElementById('searchInput');
+            var resultsPanel = document.getElementById('searchResults');
+            var resultsContent = document.getElementById('searchResultsContent');
+            if (!wrap || !toggle || !input || !resultsPanel || !resultsContent) return;
 
-            // ── D. HAMBURGER / MOBILE MENU ──────────────────────────────────
-            // On mobile, clicking the hamburger icon shows/hides the mobile
-            // nav drawer. The icon animates from ☰ → ✕ via CSS classes.
-            (function () {
-                const hamburger  = document.getElementById('hamburger');
-                const mobileMenu = document.getElementById('mobileMenu');
+            var autoCloseTimer = null;
+            var searchTimer = null;
 
-                if (!hamburger || !mobileMenu) return;
+            toggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var isOpen = wrap.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', String(isOpen));
+                if (isOpen) {
+                    setTimeout(function () { input.focus(); }, 350);
+                } else {
+                    clearTimeout(autoCloseTimer);
+                    resultsPanel.classList.remove('show');
+                    input.value = '';
+                    resultsContent.innerHTML = '';
+                }
+            });
 
-                hamburger.addEventListener('click', function () {
-                    const isOpen = hamburger.classList.toggle('open');
-                    hamburger.setAttribute('aria-expanded', String(isOpen));
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    wrap.classList.remove('open');
+                    toggle.setAttribute('aria-expanded', 'false');
+                    toggle.focus();
+                    clearTimeout(autoCloseTimer);
+                    clearTimeout(searchTimer);
+                    resultsPanel.classList.remove('show');
+                    input.value = '';
+                    resultsContent.innerHTML = '';
+                }
+            });
 
-                    if (isOpen) {
-                        mobileMenu.style.display = 'flex';
-                    } else {
-                        mobileMenu.style.display = 'none';
-                    }
+            input.addEventListener('input', function () {
+                clearTimeout(autoCloseTimer);
+                clearTimeout(searchTimer);
+                
+                var query = input.value.trim();
+                
+                if (query === '') {
+                    resultsPanel.classList.remove('show');
+                    resultsContent.innerHTML = '';
+                    autoCloseTimer = setTimeout(function () {
+                        wrap.classList.remove('open');
+                        toggle.setAttribute('aria-expanded', 'false');
+                    }, 3000);
+                    return;
+                }
+
+                resultsContent.innerHTML = '<div class="search__loading">Searching...</div>';
+                resultsPanel.classList.add('show');
+
+                searchTimer = setTimeout(function () {
+                    fetch('/Home/Search?q=' + encodeURIComponent(query))
+                        .then(function (response) { return response.json(); })
+                        .then(function (data) {
+                            if (!data.results || data.results.length === 0) {
+                                resultsContent.innerHTML = '<div class="search__no-results">No results found for "' + query + '"</div>';
+                                return;
+                            }
+
+                            var html = '';
+                            data.results.forEach(function (item) {
+                                var posterHtml = item.poster 
+                                    ? '<img class="search__result-poster" src="' + item.poster + '" alt="' + item.name + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" /><div class="search__result-poster-placeholder" style="display:none">🎬</div>'
+                                    : '<div class="search__result-poster-placeholder">🎬</div>';
+                                
+                                html += '<a href="' + item.url + '" class="search__result-item">' +
+                                    posterHtml +
+                                    '<div class="search__result-info">' +
+                                        '<div class="search__result-title">' + item.name + '</div>' +
+                                        '<div class="search__result-meta">' +
+                                            '<span class="search__result-type">' + item.type + '</span>' +
+                                            '<span class="search__result-rating">' +
+                                                '<svg width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' +
+                                                item.rating.toFixed(1) +
+                                            '</span>' +
+                                            '<span>' + item.year + '</span>' +
+                                        '</div>' +
+                                    '</div>' +
+                                '</a>';
+                            });
+                            resultsContent.innerHTML = html;
+                        })
+                        .catch(function (error) {
+                            console.error('Search error:', error);
+                            resultsContent.innerHTML = '<div class="search__no-results">Error performing search</div>';
+                        });
+                }, 300);
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!wrap.contains(e.target)) {
+                    wrap.classList.remove('open');
+                    toggle.setAttribute('aria-expanded', 'false');
+                    clearTimeout(autoCloseTimer);
+                    clearTimeout(searchTimer);
+                    resultsPanel.classList.remove('show');
+                }
+            });
+        })();
+
+        (function () {
+            var hamburger  = document.getElementById('hamburger');
+            var mobileMenu = document.getElementById('mobileMenu');
+            if (!hamburger || !mobileMenu) return;
+
+            hamburger.addEventListener('click', function () {
+                var isOpen = hamburger.classList.toggle('open');
+                hamburger.setAttribute('aria-expanded', String(isOpen));
+                mobileMenu.style.display = isOpen ? 'flex' : 'none';
+            });
+
+            mobileMenu.querySelectorAll('a, button').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    hamburger.classList.remove('open');
+                    hamburger.setAttribute('aria-expanded', 'false');
+                    mobileMenu.style.display = 'none';
                 });
+            });
+        })();
 
-                // Close the mobile menu when a link inside it is clicked
-                mobileMenu.querySelectorAll('a').forEach(function (link) {
-                    link.addEventListener('click', function () {
-                        hamburger.classList.remove('open');
-                        hamburger.setAttribute('aria-expanded', 'false');
-                        mobileMenu.style.display = 'none';
-                    });
-                });
-            })();
+        (function () {
+            var toast = document.getElementById('toast');
+            var toastTimer = null;
 
+            window.showToast = function (message) {
+                toast.textContent = message;
+                toast.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function () {
+                    toast.classList.remove('show');
+                }, 2500);
+            };
 
-            // ── E. PROFILE SWITCHER + TOAST ─────────────────────────────────
-            // switchProfile() is called from the onclick on each profile button
-            // (rendered in Razor above). It shows a toast notification to
-            // confirm the switch.  In a real app it would also make a server
-            // call to update the session's active profile.
-            (function () {
-                const toast = document.getElementById('toast');
-                let toastTimer = null;
-
-                /**
-                 * Show a bottom toast message, then auto-dismiss after 2.5s.
-                 * param {string} message - text to display inside the toast
-                 */
-                window.showToast = function (message) {
-                    toast.textContent = message;
-                    toast.classList.add('show');
-
-                    // Clear any existing dismiss timer before starting a new one
-                    clearTimeout(toastTimer);
-                    toastTimer = setTimeout(function () {
-                        toast.classList.remove('show');
-                    }, 2500);
-                };
-
-                /**
-                 * Called by each profile item button in the Razor loop above.
-                 * param {string} profileName - the name of the chosen profile
-                 */
-                window.switchProfile = function (profileName) {
-                    showToast('Switched to ' + profileName);
-
-                    // TODO: In production, POST to /Profile/Switch with the profile ID
-                    // fetch('/Profile/Switch', {
-                    //     method: 'POST',
-                    //     headers: { 'Content-Type': 'application/json' },
-                    //     body: JSON.stringify({ profileName: profileName })
-                    // });
-                };
-            })();
+            window.switchProfile = function (profileName) {
+                showToast('Switched to ' + profileName);
+            };
+        })();
     </script>
-
 </body>
 </html>
