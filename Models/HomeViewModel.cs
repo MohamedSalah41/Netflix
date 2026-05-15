@@ -7,17 +7,26 @@ public class HomeViewModel
     public string HeroGenres { get; set; } = string.Empty;
     public int HeroYear { get; set; }
     public string HeroDescription { get; set; } = string.Empty;
+    public string HeroAgeRating { get; set; } = string.Empty;
 
     public IEnumerable<MediaRow> ForYouItems { get; set; } = new List<MediaRow>();
     public IEnumerable<ContinueWatchingItem> ContinueWatching { get; set; } = new List<ContinueWatchingItem>();
     public IEnumerable<MediaRow> TrendingNow { get; set; } = new List<MediaRow>();
     public IEnumerable<MediaRow> NewReleases { get; set; } = new List<MediaRow>();
+    public IEnumerable<MediaRow> PopularOnStreamFlix { get; set; } = new List<MediaRow>();
+    public IEnumerable<MediaRow> ActionMovies { get; set; } = new List<MediaRow>();
+    public IEnumerable<MediaRow> TvDramas { get; set; } = new List<MediaRow>();
 }
 
 public class MediaRow
 {
     public BaseItem Item { get; set; } = null!;
     public string ItemType { get; set; } = string.Empty;
+    public int MatchPercentage { get; set; }
+    public string AgeRating { get; set; } = string.Empty;
+    public string Duration { get; set; } = string.Empty;
+    public int Year { get; set; }
+    public string Genres { get; set; } = string.Empty;
 }
 
 public class ContinueWatchingItem

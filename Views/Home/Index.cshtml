@@ -15,6 +15,8 @@
         display        : flex;
         align-items    : flex-end;
         overflow       : hidden;
+        margin-top     : -68px;
+        padding-top    : 68px;
     }
     .hero__bg {
         position       : absolute;
@@ -55,8 +57,8 @@
         background     : var(--brand-dim);
         border         : 1px solid rgba(229,9,20,0.35);
         border-radius  : var(--radius-full);
-        padding        : 4px 12px;
-        font-size      : 11px;
+        padding        : 6px 16px;
+        font-size      : 13px;
         font-weight    : 700;
         color          : var(--brand);
         letter-spacing : 0.08em;
@@ -65,7 +67,7 @@
     }
     .hero__title {
         font-family    : var(--font-display);
-        font-size      : clamp(42px, 6vw, 72px);
+        font-size      : clamp(56px, 8vw, 96px);
         letter-spacing : 2px;
         line-height    : 1;
         color          : var(--text-primary);
@@ -76,7 +78,7 @@
         display        : flex;
         align-items    : center;
         gap            : 12px;
-        font-size      : 13px;
+        font-size      : 16px;
         color          : var(--text-secondary);
         margin-bottom  : 16px;
         flex-wrap      : wrap;
@@ -97,7 +99,7 @@
         font-weight    : 600;
     }
     .hero__desc {
-        font-size      : 15px;
+        font-size      : 18px;
         line-height    : 1.65;
         color          : var(--text-secondary);
         margin-bottom  : 32px;
@@ -116,9 +118,9 @@
         display        : inline-flex;
         align-items    : center;
         gap            : 8px;
-        padding        : 13px 28px;
+        padding        : 16px 36px;
         border-radius  : var(--radius-full);
-        font-size      : 14px;
+        font-size      : 17px;
         font-weight    : 700;
         transition     : background 200ms, transform 150ms, box-shadow 200ms;
         white-space    : nowrap;
@@ -156,6 +158,141 @@
         color          : var(--text-muted);
         animation      : bounce 2s infinite;
     }
+    .hero__age-badge {
+        display        : inline-flex;
+        align-items    : center;
+        padding        : 3px 8px;
+        border         : 1px solid rgba(255,255,255,0.4);
+        border-radius  : 3px;
+        font-size      : 11px;
+        font-weight    : 700;
+        color          : var(--text-secondary);
+        letter-spacing : 0.05em;
+    }
+
+    /* ── CARD HOVER POPUP ─────────────────────────────────────────── */
+    .card-wrap {
+        flex-shrink    : 0;
+        position       : relative;
+        scroll-snap-align: start;
+    }
+    .card-wrap:hover { z-index: 50; }
+    .card-popup {
+        position       : absolute;
+        top            : 0;
+        left           : 50%;
+        transform      : translateX(-50%) scale(0.92);
+        width          : 260px;
+        background     : #1a1a1a;
+        border-radius  : var(--radius-md);
+        box-shadow     : 0 20px 60px rgba(0,0,0,0.8);
+        border         : 1px solid var(--border-medium);
+        opacity        : 0;
+        pointer-events : none;
+        transition     : opacity 0.25s ease, transform 0.25s ease;
+        z-index        : 100;
+        overflow       : hidden;
+    }
+    .card-wrap:hover .card-popup {
+        opacity        : 1;
+        pointer-events : all;
+        transform      : translateX(-50%) scale(1) translateY(-8px);
+    }
+    .card-popup__thumb {
+        width          : 100%;
+        aspect-ratio   : 16/9;
+        object-fit     : cover;
+        display        : block;
+        background     : var(--bg-elevated);
+    }
+    .card-popup__thumb-placeholder {
+        width          : 100%;
+        aspect-ratio   : 16/9;
+        background     : linear-gradient(135deg, #1a1a2e 0%, #262626 100%);
+        display        : flex;
+        align-items    : center;
+        justify-content: center;
+        font-size      : 36px;
+        color          : var(--text-muted);
+    }
+    .card-popup__body {
+        padding        : 12px 14px 14px;
+    }
+    .card-popup__actions {
+        display        : flex;
+        align-items    : center;
+        gap            : 8px;
+        margin-bottom  : 10px;
+    }
+    .popup-btn {
+        width          : 32px;
+        height         : 32px;
+        border-radius  : 50%;
+        display        : flex;
+        align-items    : center;
+        justify-content: center;
+        transition     : background 180ms, border-color 180ms;
+        flex-shrink    : 0;
+    }
+    .popup-btn--play {
+        background     : #fff;
+        color          : #0a0a0a;
+    }
+    .popup-btn--play:hover { background: rgba(255,255,255,0.85); }
+    .popup-btn--outline {
+        background     : transparent;
+        border         : 2px solid rgba(255,255,255,0.5);
+        color          : #fff;
+    }
+    .popup-btn--outline:hover { border-color: #fff; }
+    .popup-btn--ml {
+        margin-left    : auto;
+    }
+    .card-popup__match {
+        font-size      : 12px;
+        font-weight    : 700;
+        color          : #46d369;
+        margin-bottom  : 6px;
+    }
+    .card-popup__meta {
+        display        : flex;
+        align-items    : center;
+        gap            : 8px;
+        font-size      : 11px;
+        color          : var(--text-secondary);
+        margin-bottom  : 8px;
+        flex-wrap      : wrap;
+    }
+    .card-popup__age {
+        border         : 1px solid rgba(255,255,255,0.4);
+        padding        : 1px 5px;
+        border-radius  : 2px;
+        font-size      : 10px;
+        font-weight    : 700;
+        color          : var(--text-secondary);
+    }
+    .card-popup__desc {
+        font-size      : 11px;
+        line-height    : 1.5;
+        color          : var(--text-secondary);
+        display        : -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow       : hidden;
+        margin-bottom  : 8px;
+    }
+    .card-popup__genres {
+        display        : flex;
+        flex-wrap      : wrap;
+        gap            : 4px;
+    }
+    .card-popup__genre-tag {
+        font-size      : 10px;
+        color          : var(--text-muted);
+        background     : rgba(255,255,255,0.07);
+        border-radius  : var(--radius-sm);
+        padding        : 2px 7px;
+    }
 
     /* ── SECTION ROWS ─────────────────────────────────────────────── */
     .content-section {
@@ -190,7 +327,7 @@
     .scroll-rail {
         display        : flex;
         gap            : 12px;
-        padding        : 8px 64px 24px;
+        padding        : 8px 64px 80px;
         overflow-x     : auto;
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
@@ -226,16 +363,12 @@
 
     /* ── CARD — standard portrait ─────────────────────────────────── */
     .media-card {
-        flex-shrink    : 0;
         width          : 180px;
-        scroll-snap-align: start;
         cursor         : pointer;
-        transition     : transform 250ms var(--ease-spring);
         display        : block;
         text-decoration: none;
         color          : inherit;
     }
-    .media-card:hover { transform: scale(1.06) translateY(-4px); }
     .media-card__poster {
         width          : 100%;
         aspect-ratio   : 2/3;
@@ -244,7 +377,9 @@
         background     : var(--bg-elevated);
         display        : block;
         border         : 1px solid var(--border-subtle);
+        transition     : border-color 200ms;
     }
+    .card-wrap:hover .media-card__poster { border-color: var(--border-medium); }
     .media-card__poster-placeholder {
         width          : 100%;
         aspect-ratio   : 2/3;
@@ -444,6 +579,89 @@
         color          : var(--text-muted);
     }
 
+    /* ── HOME FOOTER ──────────────────────────────────────────────── */
+    .home-footer {
+        background     : #0a0a0a;
+        border-top     : 1px solid rgba(255,255,255,0.06);
+        padding        : 56px 64px 32px;
+        margin-top     : 48px;
+    }
+    .home-footer__social {
+        display        : flex;
+        gap            : 16px;
+        margin-bottom  : 40px;
+    }
+    .home-footer__social-btn {
+        width          : 40px;
+        height         : 40px;
+        border-radius  : 50%;
+        background     : rgba(255,255,255,0.07);
+        border         : 1px solid rgba(255,255,255,0.1);
+        display        : flex;
+        align-items    : center;
+        justify-content: center;
+        color          : #a3a3a3;
+        font-size      : 16px;
+        transition     : background 200ms, color 200ms, border-color 200ms;
+        text-decoration: none;
+    }
+    .home-footer__social-btn:hover {
+        background     : rgba(229,9,20,0.15);
+        border-color   : rgba(229,9,20,0.4);
+        color          : #e50914;
+    }
+    .home-footer__grid {
+        display        : grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap            : 32px;
+        margin-bottom  : 40px;
+    }
+    .home-footer__col-title {
+        font-size      : 11px;
+        font-weight    : 700;
+        letter-spacing : 0.1em;
+        text-transform : uppercase;
+        color          : #a3a3a3;
+        margin-bottom  : 16px;
+    }
+    .home-footer__links {
+        display        : flex;
+        flex-direction : column;
+        gap            : 12px;
+    }
+    .home-footer__link {
+        font-size      : 13px;
+        color          : #a3a3a3;
+        text-decoration: none;
+        transition     : color 180ms;
+    }
+    .home-footer__link:hover { color: #fff; }
+    .home-footer__bottom {
+        border-top     : 1px solid rgba(255,255,255,0.06);
+        padding-top    : 24px;
+        display        : flex;
+        align-items    : center;
+        justify-content: space-between;
+        flex-wrap      : wrap;
+        gap            : 12px;
+    }
+    .home-footer__service-code {
+        display        : inline-flex;
+        align-items    : center;
+        padding        : 6px 14px;
+        border         : 1px solid rgba(255,255,255,0.2);
+        border-radius  : 3px;
+        font-size      : 12px;
+        color          : #a3a3a3;
+        text-decoration: none;
+        transition     : border-color 180ms, color 180ms;
+    }
+    .home-footer__service-code:hover { border-color: #fff; color: #fff; }
+    .home-footer__copy {
+        font-size      : 12px;
+        color          : #5a5a5a;
+    }
+
     /* ── ANIMATIONS ───────────────────────────────────────────────── */
     @@keyframes bounce {
         0%, 100% { transform: translateY(0); }
@@ -465,8 +683,14 @@
     @@media (max-width: 768px) {
         .hero__content { padding: 0 24px 56px; }
         .section-header { padding: 0 24px 16px; }
-        .scroll-rail { padding: 8px 24px 20px; }
+        .scroll-rail { padding: 8px 24px 60px; }
         .empty-state { padding: 24px; }
+        .home-footer { padding: 40px 24px 24px; }
+        .home-footer__grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        .card-popup { display: none; }
+    }
+    @@media (max-width: 480px) {
+        .home-footer__grid { grid-template-columns: 1fr; }
     }
 </style>
 
@@ -527,15 +751,19 @@
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <polygon points="5 3 19 12 5 21 5 3"/>
                         </svg>
-                        Watch
+                        Play
                     </a>
                 }
                 <a href="#" class="hero-btn hero-btn--list">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
-                    Add To My List
+                    More Info
                 </a>
+                @if (!string.IsNullOrWhiteSpace(Model?.HeroAgeRating))
+                {
+                    <span class="hero__age-badge">@Model.HeroAgeRating</span>
+                }
             </div>
         </div>
 
@@ -572,28 +800,24 @@
                     {
                         string ctrl   = row.ItemType == "Movie" ? "Movie" : "Series";
                         string action = row.ItemType == "Movie" ? "Details" : "GetSeriesById";
-                        <a asp-controller="@ctrl" asp-action="@action" asp-route-id="@row.Item.Id"
-                           class="media-card media-card--wide">
-                            @if (!string.IsNullOrWhiteSpace(row.Item.Poster))
-                            {
-                                <img class="media-card__poster" src="@row.Item.Poster" alt="@row.Item.Name"
-                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
-                                <div class="media-card__poster-placeholder" style="display:none;aspect-ratio:16/9">
-                                    🎬<span>@row.Item.Name</span>
+                        <div class="card-wrap">
+                            <a asp-controller="@ctrl" asp-action="@action" asp-route-id="@row.Item.Id" class="media-card media-card--wide">
+                                @if (!string.IsNullOrWhiteSpace(row.Item.Poster))
+                                {
+                                    <img class="media-card__poster" src="@row.Item.Poster" alt="@row.Item.Name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+                                    <div class="media-card__poster-placeholder" style="display:none;aspect-ratio:16/9">🎬<span>@row.Item.Name</span></div>
+                                }
+                                else
+                                {
+                                    <div class="media-card__poster-placeholder" style="aspect-ratio:16/9">🎬<span>@row.Item.Name</span></div>
+                                }
+                                <div class="media-card__info">
+                                    <div class="media-card__name">@row.Item.Name</div>
+                                    <div class="media-card__rating"><span class="media-card__rating-star">★</span>@row.Item.Rating.ToString("0.0")</div>
                                 </div>
-                            }
-                            else
-                            {
-                                <div class="media-card__poster-placeholder" style="aspect-ratio:16/9">🎬<span>@row.Item.Name</span></div>
-                            }
-                            <div class="media-card__info">
-                                <div class="media-card__name">@row.Item.Name</div>
-                                <div class="media-card__rating">
-                                    <span class="media-card__rating-star">★</span>
-                                    @row.Item.Rating.ToString("0.0")
-                                </div>
-                            </div>
-                        </a>
+                            </a>
+                            @await Html.PartialAsync("_CardPopup", row)
+                        </div>
                     }
                 }
                 else
@@ -691,58 +915,30 @@
     <section class="content-section">
         <div class="section-header">
             <h2 class="section-title">Trending Now</h2>
-            <a href="#" class="section-show-more">
-                show more
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="9 18 15 12 9 6"/>
-                </svg>
-            </a>
+            <a href="#" class="section-show-more">show more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></a>
         </div>
         <div class="scroll-rail-wrap">
-            <button class="rail-arrow rail-arrow--left" onclick="scrollRail(this,-1)" aria-label="Scroll left">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
-            </button>
+            <button class="rail-arrow rail-arrow--left" onclick="scrollRail(this,-1)" aria-label="Scroll left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
             <div class="scroll-rail" id="rail-trending">
                 @if (Model?.TrendingNow != null && Model.TrendingNow.Any())
                 {
                     @foreach (var row in Model.TrendingNow)
                     {
-                        string ctrl   = row.ItemType == "Movie" ? "Movie" : "Series";
-                        string action = row.ItemType == "Movie" ? "Details" : "GetSeriesById";
-                        <a asp-controller="@ctrl" asp-action="@action" asp-route-id="@row.Item.Id"
-                           class="media-card">
-                            @if (!string.IsNullOrWhiteSpace(row.Item.Poster))
-                            {
-                                <img class="media-card__poster" src="@row.Item.Poster" alt="@row.Item.Name"
-                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
-                                <div class="media-card__poster-placeholder" style="display:none">🎬<span>@row.Item.Name</span></div>
-                            }
-                            else
-                            {
-                                <div class="media-card__poster-placeholder">🎬<span>@row.Item.Name</span></div>
-                            }
-                            <div class="media-card__info">
-                                <div class="media-card__name">@row.Item.Name</div>
-                                <div class="media-card__rating">
-                                    <span class="media-card__rating-star">★</span>
-                                    @row.Item.Rating.ToString("0.0")
-                                </div>
-                            </div>
-                        </a>
+                        string ctrl = row.ItemType == "Movie" ? "Movie" : "Series";
+                        string act  = row.ItemType == "Movie" ? "Details" : "GetSeriesById";
+                        <div class="card-wrap">
+                            <a asp-controller="@ctrl" asp-action="@act" asp-route-id="@row.Item.Id" class="media-card">
+                                @if (!string.IsNullOrWhiteSpace(row.Item.Poster)) { <img class="media-card__poster" src="@row.Item.Poster" alt="@row.Item.Name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="media-card__poster-placeholder" style="display:none">🎬<span>@row.Item.Name</span></div> }
+                                else { <div class="media-card__poster-placeholder">🎬<span>@row.Item.Name</span></div> }
+                                <div class="media-card__info"><div class="media-card__name">@row.Item.Name</div><div class="media-card__rating"><span class="media-card__rating-star">★</span>@row.Item.Rating.ToString("0.0")</div></div>
+                            </a>
+                            @await Html.PartialAsync("_CardPopup", row)
+                        </div>
                     }
                 }
-                else
-                {
-                    <div class="empty-state">No trending content available.</div>
-                }
+                else { <div class="empty-state">No trending content available.</div> }
             </div>
-            <button class="rail-arrow rail-arrow--right" onclick="scrollRail(this,1)" aria-label="Scroll right">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="9 18 15 12 9 6"/>
-                </svg>
-            </button>
+            <button class="rail-arrow rail-arrow--right" onclick="scrollRail(this,1)" aria-label="Scroll right"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
     </section>
 
@@ -750,107 +946,214 @@
     @if (Model?.TrendingNow != null && Model.TrendingNow.Any())
     {
         <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">Top 10 Today</h2>
-            </div>
+            <div class="section-header"><h2 class="section-title">Top 10 Today</h2></div>
             <div class="scroll-rail-wrap">
-                <button class="rail-arrow rail-arrow--left" onclick="scrollRail(this,-1)" aria-label="Scroll left">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <polyline points="15 18 9 12 15 6"/>
-                    </svg>
-                </button>
+                <button class="rail-arrow rail-arrow--left" onclick="scrollRail(this,-1)" aria-label="Scroll left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
                 <div class="scroll-rail" id="rail-top10">
                     @{ int top10Rank = 1; }
                     @foreach (var row in Model.TrendingNow.Take(10))
                     {
-                        string ctrl   = row.ItemType == "Movie" ? "Movie" : "Series";
-                        string action = row.ItemType == "Movie" ? "Details" : "GetSeriesById";
-                        <a asp-controller="@ctrl" asp-action="@action" asp-route-id="@row.Item.Id"
-                           class="top10-item" style="text-decoration:none;color:inherit">
+                        string ctrl = row.ItemType == "Movie" ? "Movie" : "Series";
+                        string act  = row.ItemType == "Movie" ? "Details" : "GetSeriesById";
+                        <a asp-controller="@ctrl" asp-action="@act" asp-route-id="@row.Item.Id" class="top10-item" style="text-decoration:none;color:inherit">
                             <span class="top10-rank">@top10Rank</span>
                             <div class="top10-poster-wrap">
-                                @if (!string.IsNullOrWhiteSpace(row.Item.Poster))
-                                {
-                                    <img src="@row.Item.Poster" alt="@row.Item.Name"
-                                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
-                                    <div class="top10-poster-placeholder" style="display:none">🎬</div>
-                                }
-                                else
-                                {
-                                    <div class="top10-poster-placeholder">🎬</div>
-                                }
+                                @if (!string.IsNullOrWhiteSpace(row.Item.Poster)) { <img src="@row.Item.Poster" alt="@row.Item.Name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="top10-poster-placeholder" style="display:none">🎬</div> }
+                                else { <div class="top10-poster-placeholder">🎬</div> }
                             </div>
                         </a>
                         top10Rank++;
                     }
                 </div>
-                <button class="rail-arrow rail-arrow--right" onclick="scrollRail(this,1)" aria-label="Scroll right">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <polyline points="9 18 15 12 9 6"/>
-                    </svg>
-                </button>
+                <button class="rail-arrow rail-arrow--right" onclick="scrollRail(this,1)" aria-label="Scroll right"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+        </section>
+    }
+
+    @* ── POPULAR ON STREAMFLIX ───────────────────────────────────────── *@
+    @if (Model?.PopularOnStreamFlix != null && Model.PopularOnStreamFlix.Any())
+    {
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">Popular on StreamFlix</h2>
+                <a href="#" class="section-show-more">show more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></a>
+            </div>
+            <div class="scroll-rail-wrap">
+                <button class="rail-arrow rail-arrow--left" onclick="scrollRail(this,-1)" aria-label="Scroll left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+                <div class="scroll-rail" id="rail-popular">
+                    @foreach (var row in Model.PopularOnStreamFlix)
+                    {
+                        string ctrl = row.ItemType == "Movie" ? "Movie" : "Series";
+                        string act  = row.ItemType == "Movie" ? "Details" : "GetSeriesById";
+                        <div class="card-wrap">
+                            <a asp-controller="@ctrl" asp-action="@act" asp-route-id="@row.Item.Id" class="media-card">
+                                @if (!string.IsNullOrWhiteSpace(row.Item.Poster)) { <img class="media-card__poster" src="@row.Item.Poster" alt="@row.Item.Name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="media-card__poster-placeholder" style="display:none">🎬<span>@row.Item.Name</span></div> }
+                                else { <div class="media-card__poster-placeholder">🎬<span>@row.Item.Name</span></div> }
+                                <div class="media-card__info"><div class="media-card__name">@row.Item.Name</div><div class="media-card__rating"><span class="media-card__rating-star">★</span>@row.Item.Rating.ToString("0.0")</div></div>
+                            </a>
+                            @await Html.PartialAsync("_CardPopup", row)
+                        </div>
+                    }
+                </div>
+                <button class="rail-arrow rail-arrow--right" onclick="scrollRail(this,1)" aria-label="Scroll right"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
             </div>
         </section>
     }
 
     @* ── NEW RELEASES ────────────────────────────────────────────────── *@
-    <section class="content-section" style="padding-bottom:64px">
+    <section class="content-section">
         <div class="section-header">
-            <h2 class="section-title">New Releases</h2>
-            <a href="#" class="section-show-more">
-                show more
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="9 18 15 12 9 6"/>
-                </svg>
-            </a>
+            <h2 class="section-title">New &amp; Popular</h2>
+            <a href="#" class="section-show-more">show more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></a>
         </div>
         <div class="scroll-rail-wrap">
-            <button class="rail-arrow rail-arrow--left" onclick="scrollRail(this,-1)" aria-label="Scroll left">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
-            </button>
+            <button class="rail-arrow rail-arrow--left" onclick="scrollRail(this,-1)" aria-label="Scroll left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
             <div class="scroll-rail" id="rail-new">
                 @if (Model?.NewReleases != null && Model.NewReleases.Any())
                 {
                     @foreach (var row in Model.NewReleases)
                     {
-                        string ctrl   = row.ItemType == "Movie" ? "Movie" : "Series";
-                        string action = row.ItemType == "Movie" ? "Details" : "GetSeriesById";
-                        <a asp-controller="@ctrl" asp-action="@action" asp-route-id="@row.Item.Id"
-                           class="media-card">
-                            @if (!string.IsNullOrWhiteSpace(row.Item.Poster))
-                            {
-                                <img class="media-card__poster" src="@row.Item.Poster" alt="@row.Item.Name"
-                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
-                                <div class="media-card__poster-placeholder" style="display:none">🎬<span>@row.Item.Name</span></div>
-                            }
-                            else
-                            {
-                                <div class="media-card__poster-placeholder">🎬<span>@row.Item.Name</span></div>
-                            }
-                            <div class="media-card__info">
-                                <div class="media-card__name">@row.Item.Name</div>
-                                <div class="media-card__rating">
-                                    <span class="media-card__rating-star">★</span>
-                                    @row.Item.Rating.ToString("0.0")
-                                </div>
-                            </div>
-                        </a>
+                        string ctrl = row.ItemType == "Movie" ? "Movie" : "Series";
+                        string act  = row.ItemType == "Movie" ? "Details" : "GetSeriesById";
+                        <div class="card-wrap">
+                            <a asp-controller="@ctrl" asp-action="@act" asp-route-id="@row.Item.Id" class="media-card">
+                                @if (!string.IsNullOrWhiteSpace(row.Item.Poster)) { <img class="media-card__poster" src="@row.Item.Poster" alt="@row.Item.Name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="media-card__poster-placeholder" style="display:none">🎬<span>@row.Item.Name</span></div> }
+                                else { <div class="media-card__poster-placeholder">🎬<span>@row.Item.Name</span></div> }
+                                <div class="media-card__info"><div class="media-card__name">@row.Item.Name</div><div class="media-card__rating"><span class="media-card__rating-star">★</span>@row.Item.Rating.ToString("0.0")</div></div>
+                            </a>
+                            @await Html.PartialAsync("_CardPopup", row)
+                        </div>
                     }
                 }
-                else
-                {
-                    <div class="empty-state">No new releases available.</div>
-                }
+                else { <div class="empty-state">No new releases available.</div> }
             </div>
-            <button class="rail-arrow rail-arrow--right" onclick="scrollRail(this,1)" aria-label="Scroll right">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="9 18 15 12 9 6"/>
-                </svg>
-            </button>
+            <button class="rail-arrow rail-arrow--right" onclick="scrollRail(this,1)" aria-label="Scroll right"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
     </section>
+
+    @* ── ACTION MOVIES ───────────────────────────────────────────────── *@
+    @if (Model?.ActionMovies != null && Model.ActionMovies.Any())
+    {
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">Action Movies</h2>
+                <a href="#" class="section-show-more">show more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></a>
+            </div>
+            <div class="scroll-rail-wrap">
+                <button class="rail-arrow rail-arrow--left" onclick="scrollRail(this,-1)" aria-label="Scroll left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+                <div class="scroll-rail" id="rail-action">
+                    @foreach (var row in Model.ActionMovies)
+                    {
+                        string ctrl = row.ItemType == "Movie" ? "Movie" : "Series";
+                        string act  = row.ItemType == "Movie" ? "Details" : "GetSeriesById";
+                        <div class="card-wrap">
+                            <a asp-controller="@ctrl" asp-action="@act" asp-route-id="@row.Item.Id" class="media-card">
+                                @if (!string.IsNullOrWhiteSpace(row.Item.Poster)) { <img class="media-card__poster" src="@row.Item.Poster" alt="@row.Item.Name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="media-card__poster-placeholder" style="display:none">🎬<span>@row.Item.Name</span></div> }
+                                else { <div class="media-card__poster-placeholder">🎬<span>@row.Item.Name</span></div> }
+                                <div class="media-card__info"><div class="media-card__name">@row.Item.Name</div><div class="media-card__rating"><span class="media-card__rating-star">★</span>@row.Item.Rating.ToString("0.0")</div></div>
+                            </a>
+                            @await Html.PartialAsync("_CardPopup", row)
+                        </div>
+                    }
+                </div>
+                <button class="rail-arrow rail-arrow--right" onclick="scrollRail(this,1)" aria-label="Scroll right"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+        </section>
+    }
+
+    @* ── TV DRAMAS ───────────────────────────────────────────────────── *@
+    @if (Model?.TvDramas != null && Model.TvDramas.Any())
+    {
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">TV Dramas</h2>
+                <a href="#" class="section-show-more">show more <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></a>
+            </div>
+            <div class="scroll-rail-wrap">
+                <button class="rail-arrow rail-arrow--left" onclick="scrollRail(this,-1)" aria-label="Scroll left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+                <div class="scroll-rail" id="rail-dramas">
+                    @foreach (var row in Model.TvDramas)
+                    {
+                        string ctrl = row.ItemType == "Movie" ? "Movie" : "Series";
+                        string act  = row.ItemType == "Movie" ? "Details" : "GetSeriesById";
+                        <div class="card-wrap">
+                            <a asp-controller="@ctrl" asp-action="@act" asp-route-id="@row.Item.Id" class="media-card">
+                                @if (!string.IsNullOrWhiteSpace(row.Item.Poster)) { <img class="media-card__poster" src="@row.Item.Poster" alt="@row.Item.Name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="media-card__poster-placeholder" style="display:none">🎬<span>@row.Item.Name</span></div> }
+                                else { <div class="media-card__poster-placeholder">🎬<span>@row.Item.Name</span></div> }
+                                <div class="media-card__info"><div class="media-card__name">@row.Item.Name</div><div class="media-card__rating"><span class="media-card__rating-star">★</span>@row.Item.Rating.ToString("0.0")</div></div>
+                            </a>
+                            @await Html.PartialAsync("_CardPopup", row)
+                        </div>
+                    }
+                </div>
+                <button class="rail-arrow rail-arrow--right" onclick="scrollRail(this,1)" aria-label="Scroll right"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+        </section>
+    }
+
+    @* ── FOOTER ──────────────────────────────────────────────────────── *@
+    <footer class="home-footer">
+        <div class="home-footer__social">
+            <a href="#" class="home-footer__social-btn" aria-label="Facebook">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            </a>
+            <a href="#" class="home-footer__social-btn" aria-label="Instagram">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+            <a href="#" class="home-footer__social-btn" aria-label="Twitter / X">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a href="#" class="home-footer__social-btn" aria-label="YouTube">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#0a0a0a"/></svg>
+            </a>
+        </div>
+        <div class="home-footer__grid">
+            <div>
+                <div class="home-footer__col-title">Support</div>
+                <div class="home-footer__links">
+                    <a href="#" class="home-footer__link">FAQ</a>
+                    <a href="#" class="home-footer__link">Help Center</a>
+                    <a href="#" class="home-footer__link">Account</a>
+                    <a href="#" class="home-footer__link">Media Center</a>
+                    <a href="#" class="home-footer__link">Investor Relations</a>
+                </div>
+            </div>
+            <div>
+                <div class="home-footer__col-title">Legal</div>
+                <div class="home-footer__links">
+                    <a href="#" class="home-footer__link">Privacy</a>
+                    <a href="#" class="home-footer__link">Terms of Use</a>
+                    <a href="#" class="home-footer__link">Cookie Preferences</a>
+                    <a href="#" class="home-footer__link">Corporate Information</a>
+                    <a href="#" class="home-footer__link">Legal Notices</a>
+                </div>
+            </div>
+            <div>
+                <div class="home-footer__col-title">Company</div>
+                <div class="home-footer__links">
+                    <a href="#" class="home-footer__link">Jobs</a>
+                    <a href="#" class="home-footer__link">Press</a>
+                    <a href="#" class="home-footer__link">Gift Cards</a>
+                    <a href="#" class="home-footer__link">Ways to Watch</a>
+                    <a href="#" class="home-footer__link">Speed Test</a>
+                </div>
+            </div>
+            <div>
+                <div class="home-footer__col-title">Discover</div>
+                <div class="home-footer__links">
+                    <a asp-controller="Movie" asp-action="Index" class="home-footer__link">Movies</a>
+                    <a asp-controller="Series" asp-action="Index" class="home-footer__link">TV Shows</a>
+                    <a asp-controller="Home" asp-action="Index" class="home-footer__link">New &amp; Popular</a>
+                    <a asp-controller="MyList" asp-action="Index" class="home-footer__link">My List</a>
+                    <a href="#" class="home-footer__link">Browse by Language</a>
+                </div>
+            </div>
+        </div>
+        <div class="home-footer__bottom">
+            <a href="#" class="home-footer__service-code">Service Code</a>
+            <span class="home-footer__copy">&copy; @DateTime.Now.Year StreamFlix. All rights reserved.</span>
+        </div>
+    </footer>
 
 </div>
 
@@ -875,7 +1178,7 @@ function scrollRail(btn, dir) {
     const wrap = btn.closest('.scroll-rail-wrap');
     const rail = wrap.querySelector('.scroll-rail');
     if (!rail) return;
-    const cardWidth = rail.querySelector('.media-card, .cw-card')?.offsetWidth ?? 220;
+    const cardWidth = rail.querySelector('.card-wrap, .media-card, .cw-card, .top10-item')?.offsetWidth ?? 200;
     rail.scrollBy({ left: dir * (cardWidth + 12) * 3, behavior: 'smooth' });
 }
 </script>

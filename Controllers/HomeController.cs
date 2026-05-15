@@ -16,6 +16,57 @@ namespace Netflix_clone.Controllers
             _db = db;
         }
 
+        private static readonly string[] AgeRatings = { "G", "PG", "PG-13", "TV-14", "TV-MA", "R" };
+        private static readonly Random Rng = new();
+
+        private static string GetAgeRating(BaseItem item)
+        {
+            return AgeRatings[Math.Abs(item.Id) % AgeRatings.Length];
+        }
+
+        private static string GetDuration(BaseItem item)
+        {
+            if (item is MediaItem mi && mi.DurationSeconds > TimeSpan.Zero)
+            {
+                var ts = mi.DurationSeconds;
+                return ts.Hours > 0 ? $"{ts.Hours}h {ts.Minutes}m" : $"{ts.Minutes}m";
+            }
+            if (item is GeneralSeries)
+                return "Series";
+            return string.Empty;
+        }
+
+        private static int GetYear(BaseItem item)
+        {
+            return 2020 + (Math.Abs(item.Id) % 5);
+        }
+
+        private static int GetMatchPct(BaseItem item)
+        {
+            return 85 + (Math.Abs(item.Id * 7 + 13) % 15);
+        }
+
+        private static string GetGenres(BaseItem item)
+        {
+            if (item is Series s) return string.Join(" · ", s.Categories.Select(c => c.Name));
+            if (item is Movie m) return string.Join(" · ", m.Categories.Select(c => c.Name));
+            return string.Empty;
+        }
+
+        private static MediaRow ToRow(BaseItem item, string type)
+        {
+            return new MediaRow
+            {
+                Item           = item,
+                ItemType       = type,
+                MatchPercentage = GetMatchPct(item),
+                AgeRating      = GetAgeRating(item),
+                Duration       = GetDuration(item),
+                Year           = GetYear(item),
+                Genres         = GetGenres(item)
+            };
+        }
+
         public IActionResult Index()
         {
             if (User.Identity?.IsAuthenticated == true)
@@ -45,24 +96,41 @@ namespace Netflix_clone.Controllers
                 allMovies = allMovies.Where(m => !m.Categories.Any(c => c.Name.Equals("18+", StringComparison.OrdinalIgnoreCase))).ToList();
             }
 
-            var allRows = allSeries.Select(s => new MediaRow { Item = s, ItemType = "Series" })
-                          .Concat(allMovies.Select(m => new MediaRow { Item = m, ItemType = "Movie" }))
+            var allRows = allSeries.Select(s => ToRow(s, "Series"))
+                          .Concat(allMovies.Select(m => ToRow(m, "Movie")))
                           .ToList();
 
             var heroRow = allRows.OrderByDescending(r => r.Item.Rating).FirstOrDefault();
 
-            string heroGenres = string.Empty;
+            string heroGenres = heroRow != null ? GetGenres(heroRow.Item) : string.Empty;
             string heroItemType = heroRow?.ItemType ?? string.Empty;
-            int heroYear = DateTime.Now.Year;
+            int heroYear = heroRow != null ? GetYear(heroRow.Item) : DateTime.Now.Year;
+            string heroAgeRating = heroRow != null ? GetAgeRating(heroRow.Item) : string.Empty;
 
-            if (heroRow?.Item is Series hs)
-                heroGenres = string.Join(" . ", hs.Categories.Select(c => c.Name));
-            else if (heroRow?.Item is Movie hm)
-                heroGenres = string.Join(" . ", hm.Categories.Select(c => c.Name));
+            var forYou = allRows.OrderBy(_ => Guid.NewGuid()).Take(15).ToList();
+            var trending = allRows.OrderByDescending(r => r.Item.Rating).Take(15).ToList();
+            var newReleases = allRows.OrderBy(_ => Guid.NewGuid()).Take(15).ToList();
 
-            var forYou = allRows.OrderBy(_ => Guid.NewGuid()).Take(10).ToList();
-            var trending = allRows.OrderByDescending(r => r.Item.Rating).Take(10).ToList();
-            var newReleases = allRows.OrderBy(_ => Guid.NewGuid()).Take(10).ToList();
+            var actionKeywords = new[] { "action", "thriller", "adventure" };
+            var dramaKeywords  = new[] { "drama", "crime", "mystery" };
+
+            var actionMovies = allRows
+                .Where(r => r.Genres.Split('·', StringSplitOptions.TrimEntries)
+                    .Any(g => actionKeywords.Any(k => g.Contains(k, StringComparison.OrdinalIgnoreCase))))
+                .Take(15).ToList();
+
+            if (actionMovies.Count < 5)
+                actionMovies = allRows.OrderBy(_ => Guid.NewGuid()).Take(15).ToList();
+
+            var tvDramas = allRows
+                .Where(r => r.ItemType == "Series" || r.Genres.Split('·', StringSplitOptions.TrimEntries)
+                    .Any(g => dramaKeywords.Any(k => g.Contains(k, StringComparison.OrdinalIgnoreCase))))
+                .Take(15).ToList();
+
+            if (tvDramas.Count < 5)
+                tvDramas = allRows.Where(r => r.ItemType == "Series").Take(15).ToList();
+
+            var popular = allRows.OrderByDescending(r => r.Item.Rating).Skip(5).Take(15).ToList();
 
             var continueWatching = new List<ContinueWatchingItem>();
 
@@ -127,15 +195,19 @@ namespace Netflix_clone.Controllers
 
             var vm = new HomeViewModel
             {
-                HeroItem         = heroRow?.Item,
-                HeroItemType     = heroItemType,
-                HeroGenres       = heroGenres,
-                HeroYear         = heroYear,
-                HeroDescription  = heroRow?.Item.Description ?? string.Empty,
-                ForYouItems      = forYou,
-                ContinueWatching = continueWatching,
-                TrendingNow      = trending,
-                NewReleases      = newReleases
+                HeroItem              = heroRow?.Item,
+                HeroItemType          = heroItemType,
+                HeroGenres            = heroGenres,
+                HeroYear              = heroYear,
+                HeroDescription       = heroRow?.Item.Description ?? string.Empty,
+                HeroAgeRating         = heroAgeRating,
+                ForYouItems           = forYou,
+                ContinueWatching      = continueWatching,
+                TrendingNow           = trending,
+                NewReleases           = newReleases,
+                PopularOnStreamFlix   = popular,
+                ActionMovies          = actionMovies,
+                TvDramas              = tvDramas
             };
 
             return View(vm);
