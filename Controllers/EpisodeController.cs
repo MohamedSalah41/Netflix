@@ -1,50 +1,48 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
+using Netflix_clone.Repositories;
 
 namespace Netflix_clone.Controllers
 {
     public class EpisodeController : Controller
     {
-        private readonly NetflixContext context;
+        private readonly IGenericRepository<Episode> _episodeRepo;
+        private readonly IGenericRepository<Season> _seasonRepo;
 
-        public EpisodeController(NetflixContext context)
+        public EpisodeController(IGenericRepository<Episode> episodeRepo, IGenericRepository<Season> seasonRepo)
         {
-            this.context = context;
+            _episodeRepo = episodeRepo;
+            _seasonRepo = seasonRepo;
         }
         public ActionResult GetAllEpisodes(int? seasonId = null)
         {
             if (seasonId.HasValue)
             {
-                var episodes = context.Episodes
-                    .Include(e => e.Season)
+                var episodes = _episodeRepo.GetAllQueryable()
                     .Where(e => e.SeasonId == seasonId.Value)
                     .OrderBy(e => e.Number)
                     .ToList();
 
-                var season = context.Seasons
-                    .Include(s => s.Series)
-                    .FirstOrDefault(s => s.Id == seasonId.Value);
+                var season = _seasonRepo.GetByIdWithIncludes(seasonId.Value, s => s.Series);
 
                 ViewBag.Season = season;
                 return View(episodes);
             }
 
-            return View(context.Episodes.ToList());
+            return View(_episodeRepo.GetAll());
         }
 
-        // GET: EpisodeController/Details/5
         public ActionResult Details(int id)
         {
-            return View(context.Episodes.FirstOrDefault(e=>e.Id==id));
+            return View(_episodeRepo.GetById(id));
         }
 
         [Authorize(Roles = "Admin")]
         public ActionResult Create()
         {
-            ViewBag.Seasons = context.Seasons.ToList();
+            ViewBag.Seasons = _seasonRepo.GetAll();
             return View();
         }
 
@@ -57,8 +55,8 @@ namespace Netflix_clone.Controllers
             {
                 if(ModelState.IsValid)
                 {
-                    context.Episodes.Add(episode);
-                    context.SaveChanges();
+                    _episodeRepo.Add(episode);
+                    _episodeRepo.Save();
                 }
                 return RedirectToAction(nameof(GetAllEpisodes));
             }
@@ -71,8 +69,8 @@ namespace Netflix_clone.Controllers
         [Authorize(Roles = "Admin")]
         public ActionResult Edit(int id)
         {
-            ViewBag.Seasons = context.Seasons.ToList();
-            return View(context.Episodes.FirstOrDefault(e => e.Id == id));
+            ViewBag.Seasons = _seasonRepo.GetAll();
+            return View(_episodeRepo.GetById(id));
         }
 
         [HttpPost]
@@ -84,8 +82,8 @@ namespace Netflix_clone.Controllers
             {
                 if(ModelState.IsValid)
                 {
-                   context.Episodes.Update(episode);
-                    context.SaveChanges();
+                   _episodeRepo.Update(episode);
+                    _episodeRepo.Save();
                 }
                 return RedirectToAction(nameof(GetAllEpisodes));
             }
@@ -98,7 +96,7 @@ namespace Netflix_clone.Controllers
         [Authorize(Roles = "Admin")]
         public ActionResult Delete(int id)
         {
-            return View(context.Episodes.FirstOrDefault(e=>e.Id==id));
+            return View(_episodeRepo.GetById(id));
         }
 
         [HttpPost]
@@ -108,8 +106,8 @@ namespace Netflix_clone.Controllers
         {
             try
             {
-                context.Episodes.Remove(episode);
-                context.SaveChanges();
+                _episodeRepo.Delete(episode);
+                _episodeRepo.Save();
                 return RedirectToAction(nameof(GetAllEpisodes));
             }
             catch

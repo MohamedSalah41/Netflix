@@ -10,50 +10,14 @@ namespace Netflix_clone.Controllers
 	public class CategoryController : Controller
 	{
 		private readonly IGenericRepository<Category> _categoryRepo;
-		private readonly NetflixContext _db;
-
-		public CategoryController(IGenericRepository<Category> categoryRepo, NetflixContext db)
+		public CategoryController(IGenericRepository<Category> categoryRepo)
 		{
 			_categoryRepo = categoryRepo;
-			_db = db;
-		}
-
-		public async Task<IActionResult> Browse(string name)
-		{
-			if (string.IsNullOrWhiteSpace(name))
-				return NotFound();
-
-			var category = await _db.Categories
-				.FirstOrDefaultAsync(c => c.Name == name);
-
-			if (category == null)
-				return NotFound();
-
-			var movies = await _db.Movies
-				.Include(m => m.Categories)
-				.Where(m => m.Categories.Any(c => c.Name == name))
-				.OrderBy(m => m.Name)
-				.ToListAsync();
-
-			var series = await _db.Series
-				.Include(s => s.Categories)
-				.Where(s => s.Categories.Any(c => c.Name == name))
-				.OrderBy(s => s.Name)
-				.ToListAsync();
-
-			var vm = new CategoryBrowseViewModel
-			{
-				CategoryName = category.Name,
-				Movies = movies,
-				Series = series
-			};
-
-			return View(vm);
 		}
 
 		public async Task<IActionResult> Index()
 		{
-			var categories = await _db.Categories.OrderBy(c => c.Name).ToListAsync();
+			var categories = (await _categoryRepo.GetAllAsync()).OrderBy(c => c.Name).ToList();
 			return View(categories);
 		}
 
@@ -71,8 +35,8 @@ namespace Netflix_clone.Controllers
 			if (!ModelState.IsValid)
 				return View(category);
 
-			_db.Categories.Add(category);
-			await _db.SaveChangesAsync();
+			_categoryRepo.Add(category);
+			await _categoryRepo.SaveAsync();
 
 			TempData["Success"] = "Category added successfully.";
 			return RedirectToAction(nameof(Index));
@@ -81,7 +45,7 @@ namespace Netflix_clone.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Update(int id)
 		{
-			var category = await _db.Categories.FindAsync(id);
+			var category = await _categoryRepo.GetByIdAsync(id);
 			if (category == null)
 				return NotFound();
 			return View(category);
@@ -98,8 +62,8 @@ namespace Netflix_clone.Controllers
 			if (!ModelState.IsValid)
 				return View(category);
 
-			_db.Categories.Update(category);
-			await _db.SaveChangesAsync();
+			_categoryRepo.Update(category);
+			await _categoryRepo.SaveAsync();
 
 			TempData["Success"] = "Category updated successfully.";
 			return RedirectToAction(nameof(Index));
@@ -108,7 +72,7 @@ namespace Netflix_clone.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Delete(int id)
 		{
-			var category = await _db.Categories.FindAsync(id);
+			var category = await _categoryRepo.GetByIdAsync(id);
 
 			if (category == null)
 				return NotFound();
@@ -121,11 +85,11 @@ namespace Netflix_clone.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> DeleteConfirmed(int id)
 		{
-			var category = await _db.Categories.FindAsync(id);
+			var category = await _categoryRepo.GetByIdAsync(id);
 			if (category == null)
 				return NotFound();
-			_db.Categories.Remove(category);
-			await _db.SaveChangesAsync();
+			_categoryRepo.Delete(category);
+			await _categoryRepo.SaveAsync();
 			TempData["Success"] = "Category deleted successfully.";
 			return RedirectToAction(nameof(Index));
 		}

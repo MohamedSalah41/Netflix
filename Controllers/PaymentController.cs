@@ -2,8 +2,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
+using Netflix_clone.Repositories;
 using Stripe;
 using Stripe.Checkout;
 using AppSubscription = Netflix_clone.Models.Subscription;
@@ -13,7 +13,7 @@ namespace Netflix_clone.Controllers
     [Authorize]
     public class PaymentController : Controller
     {
-        private readonly NetflixContext _db;
+        private readonly IGenericRepository<AppSubscription> _subscriptionRepo;
         private readonly UserManager<AppUser> _userManager;
         private readonly IConfiguration _config;
 
@@ -24,9 +24,9 @@ namespace Netflix_clone.Controllers
             ["premium"]  = ("Premium",  1799, "4K + HDR streaming · 4 screens",   SubscriptionPlan.Premium),
         };
 
-        public PaymentController(NetflixContext db, UserManager<AppUser> userManager, IConfiguration config)
+        public PaymentController(IGenericRepository<AppSubscription> subscriptionRepo, UserManager<AppUser> userManager, IConfiguration config)
         {
-            _db          = db;
+            _subscriptionRepo = subscriptionRepo;
             _userManager = userManager;
             _config      = config;
         }
@@ -50,16 +50,14 @@ namespace Netflix_clone.Controllers
 
             StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
 
-            var existing = await _db.Subscriptions
-                .FirstOrDefaultAsync(s => s.AppUserId == userId && s.Status == SubscriptionStatus.Active);
+            var existing = _subscriptionRepo.Find(s => s.AppUserId == userId && s.Status == SubscriptionStatus.Active);
             if (existing != null)
                 return RedirectToAction(nameof(Success));
 
             var customerService = new CustomerService();
             Customer customer;
 
-            var existingAny = await _db.Subscriptions
-                .FirstOrDefaultAsync(s => s.AppUserId == userId && !string.IsNullOrEmpty(s.StripeCustomerId));
+            var existingAny = _subscriptionRepo.Find(s => s.AppUserId == userId && !string.IsNullOrEmpty(s.StripeCustomerId));
 
             if (existingAny != null)
             {
@@ -123,12 +121,11 @@ namespace Netflix_clone.Controllers
 
                     if (userId != null && planKey != null && PlanOptions.TryGetValue(planKey, out var plan))
                     {
-                        var existing = await _db.Subscriptions
-                            .FirstOrDefaultAsync(s => s.AppUserId == userId);
+                        var existing = _subscriptionRepo.Find(s => s.AppUserId == userId);
 
                         if (existing == null)
                         {
-                            _db.Subscriptions.Add(new AppSubscription
+                            _subscriptionRepo.Add(new AppSubscription
                             {
                                 AppUserId             = userId,
                                 Plan                  = plan.Plan,
@@ -148,7 +145,7 @@ namespace Netflix_clone.Controllers
                             existing.EndDate              = null;
                         }
 
-                        await _db.SaveChangesAsync();
+                        await _subscriptionRepo.SaveAsync();
                     }
                 }
             }
@@ -185,8 +182,7 @@ namespace Netflix_clone.Controllers
                     var stripeSub = stripeEvent.Data.Object as Stripe.Subscription;
                     if (stripeSub != null)
                     {
-                        var sub = await _db.Subscriptions
-                            .FirstOrDefaultAsync(s => s.StripeSubscriptionId == stripeSub.Id);
+                        var sub = _subscriptionRepo.Find(s => s.StripeSubscriptionId == stripeSub.Id);
 
                         if (sub != null)
                         {
@@ -194,7 +190,7 @@ namespace Netflix_clone.Controllers
                                 ? SubscriptionStatus.Active
                                 : SubscriptionStatus.Cancelled;
                             sub.EndDate = stripeSub.CanceledAt ?? stripeSub.CurrentPeriodEnd;
-                            await _db.SaveChangesAsync();
+                            await _subscriptionRepo.SaveAsync();
                         }
                     }
                 }
@@ -211,8 +207,7 @@ namespace Netflix_clone.Controllers
         public async Task<IActionResult> CancelSubscription()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var sub = await _db.Subscriptions
-                .FirstOrDefaultAsync(s => s.AppUserId == userId && s.Status == SubscriptionStatus.Active);
+            var sub = _subscriptionRepo.Find(s => s.AppUserId == userId && s.Status == SubscriptionStatus.Active);
 
             if (sub == null)
                 return RedirectToAction(nameof(Plans));
@@ -227,7 +222,7 @@ namespace Netflix_clone.Controllers
 
             sub.Status  = SubscriptionStatus.Cancelled;
             sub.EndDate = DateTime.UtcNow;
-            await _db.SaveChangesAsync();
+            await _subscriptionRepo.SaveAsync();
 
             return RedirectToAction(nameof(Plans));
         }

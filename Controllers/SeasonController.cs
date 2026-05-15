@@ -8,12 +8,12 @@ namespace Netflix_clone.Controllers;
 public class SeasonController : Controller
 {
     private readonly ISeasonRepository _seasonRepo;
-    private readonly NetflixContext context;
+    private readonly IGenericRepository<Series> _seriesRepo;
 
-    public SeasonController(ISeasonRepository seasonRepo,NetflixContext context)
+    public SeasonController(ISeasonRepository seasonRepo, IGenericRepository<Series> seriesRepo)
     {
         _seasonRepo = seasonRepo;
-        this.context = context;
+        _seriesRepo = seriesRepo;
     }
 
     public IActionResult GetAllSeasons()
@@ -31,7 +31,7 @@ public class SeasonController : Controller
     [Authorize(Roles = "Admin")]
     public IActionResult AddSeason()
     {
-        ViewBag.SeriesList = context.Series.ToList();
+        ViewBag.SeriesList = _seriesRepo.GetAll();
         return View();
     }
 
@@ -41,7 +41,7 @@ public class SeasonController : Controller
     public IActionResult AddSeason(Season season)
     {
         if (!ModelState.IsValid) return View(season);
-        ViewBag.SeriesList = context.Series.ToList();
+        ViewBag.SeriesList = _seriesRepo.GetAll();
         _seasonRepo.Add(season);
         _seasonRepo.Save();
         return RedirectToAction(nameof(GetAllSeasons));
@@ -51,7 +51,7 @@ public class SeasonController : Controller
     public IActionResult UpdateSeason(int id)
     {
         var season = _seasonRepo.GetById(id);
-        ViewBag.SeriesList = context.Series.ToList();
+        ViewBag.SeriesList = _seriesRepo.GetAll();
         if (season is null) return NotFound();
         return View(season);
     }
@@ -62,7 +62,7 @@ public class SeasonController : Controller
     public IActionResult UpdateSeason(int id, Season season)
     {
         if (!ModelState.IsValid) return View(season);
-        ViewBag.SeriesList = context.Series.ToList();
+        ViewBag.SeriesList = _seriesRepo.GetAll();
         _seasonRepo.Update(season);
         _seasonRepo.Save();
         return RedirectToAction(nameof(GetAllSeasons));
