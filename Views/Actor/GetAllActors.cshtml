@@ -296,6 +296,8 @@
     </div>
 
     @* ── CUSTOMISE-ACTIONS: change asp-action ── *@
+    @if (User.IsInRole("Admin"))
+    {
     <a asp-action="@addAction" class="btn-add">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2.5">
@@ -303,6 +305,7 @@
         </svg>
         @addLabel
     </a>
+    }
 </div>
 
 @* ── TOOLBAR (client-side filter) ───────────────────────────────────── *@
@@ -371,6 +374,8 @@
                                     </svg>
                                     Details
                                 </a>
+                                @if (User.IsInRole("Admin"))
+                                {
                                 <a asp-action="UpdateActor" asp-route-id="@item.Id"
                                    class="action-btn action-btn--edit">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
@@ -390,6 +395,7 @@
                                     </svg>
                                     Delete
                                 </a>
+                                }
                             </div>
                         </td>
                     </tr>

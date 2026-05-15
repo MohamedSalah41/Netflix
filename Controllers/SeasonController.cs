@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Netflix_clone.Models;
 using Netflix_clone.Repositories;
@@ -27,6 +28,7 @@ public class SeasonController : Controller
         return View(season);
     }
 
+    [Authorize(Roles = "Admin")]
     public IActionResult AddSeason()
     {
         ViewBag.SeriesList = context.Series.ToList();
@@ -35,6 +37,7 @@ public class SeasonController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
     public IActionResult AddSeason(Season season)
     {
         if (!ModelState.IsValid) return View(season);
@@ -44,6 +47,7 @@ public class SeasonController : Controller
         return RedirectToAction(nameof(GetAllSeasons));
     }
 
+    [Authorize(Roles = "Admin")]
     public IActionResult UpdateSeason(int id)
     {
         var season = _seasonRepo.GetById(id);
@@ -54,6 +58,7 @@ public class SeasonController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
     public IActionResult UpdateSeason(int id, Season season)
     {
         if (!ModelState.IsValid) return View(season);
@@ -63,6 +68,7 @@ public class SeasonController : Controller
         return RedirectToAction(nameof(GetAllSeasons));
     }
 
+    [Authorize(Roles = "Admin")]
     public IActionResult DeleteSeason(int id)
     {
         var season = _seasonRepo.GetById(id);
@@ -72,6 +78,7 @@ public class SeasonController : Controller
 
     [HttpPost, ActionName("DeleteSeason")]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
     public IActionResult DeleteSeasonConfirmed(int id)
     {
         var season = _seasonRepo.GetById(id);

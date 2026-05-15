@@ -133,9 +133,12 @@
             <p>Manage all episodes in the system.</p>
         </div>
 
+        @if (User.IsInRole("Admin"))
+        {
         <a asp-action="Create" class="btn-submit">
             + Add Episode
         </a>
+        }
 
     </div>
 
@@ -166,6 +169,8 @@
 
                     <div class="episode-actions">
 
+                        @if (User.IsInRole("Admin"))
+                        {
                         <a asp-action="Edit"
                            asp-route-id="@item.Id"
                            class="episode-btn edit-btn"
@@ -179,6 +184,7 @@
                            onclick="event.stopPropagation();">
                             Delete
                         </a>
+                        }
 
                     </div>
 

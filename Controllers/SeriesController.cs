@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
@@ -45,7 +46,7 @@ namespace Netflix_clone.Controllers
             return View(series);
         }
 
-    // GET: SeriesController/Create
+    [Authorize(Roles = "Admin")]
     public ActionResult AddSeries()
         {
             ViewBag.Categories = _netflixContext.Categories.ToList();
@@ -55,6 +56,7 @@ namespace Netflix_clone.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public ActionResult AddSeries(
     Series series,
     List<int> actorIds,
@@ -110,6 +112,7 @@ namespace Netflix_clone.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         public ActionResult UpdateSeries(int id)
         {
             var series = _netflixContext.Series
@@ -130,6 +133,7 @@ namespace Netflix_clone.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public ActionResult UpdateSeries(
      Series series,
      List<int> actorIds,
@@ -171,14 +175,14 @@ namespace Netflix_clone.Controllers
             return RedirectToAction(nameof(GetAllSeries));
         }
 
-        // GET: SeriesController/Delete/5
+        [Authorize(Roles = "Admin")]
         public ActionResult DeleteSeries(int id)
         {
             return View(_netflixContext.Series.FirstOrDefault(s => s.Id == id));
         }
 
-        // POST: SeriesController/Delete/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public ActionResult DeleteSeries(int id, Series series)
         {
             try

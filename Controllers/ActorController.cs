@@ -35,14 +35,14 @@ namespace Netflix_clone.Controllers
             return View(_netflixContext.Actors.ToList());
         }
 
-        // GET: ActorController/Create
+        [Authorize(Roles = "Admin")]
         public ActionResult AddActor()
         {
             return View();
         }
 
-        // POST: ActorController/Create
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public ActionResult AddActor(Actor actor)
         {
             try
@@ -57,14 +57,14 @@ namespace Netflix_clone.Controllers
             }
         }
 
-        // GET: ActorController/Edit/5
+        [Authorize(Roles = "Admin")]
         public ActionResult UpdateActor(int id)
         {
             return View(_netflixContext.Actors.FirstOrDefault(a => a.Id == id));
         }
 
-        // POST: ActorController/Edit/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public ActionResult UpdateActor(int id, Actor actor)
         {
             try
@@ -79,15 +79,15 @@ namespace Netflix_clone.Controllers
             }
         }
 
-        // GET: ActorController/Delete/5
+        [Authorize(Roles = "Admin")]
         public ActionResult DeleteActor(int id)
         {
             return View(_netflixContext.Actors.FirstOrDefault(a => a.Id == id));
         }
 
-        // POST: ActorController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public ActionResult DeleteActor(int id, Actor actor)
         {
             try
