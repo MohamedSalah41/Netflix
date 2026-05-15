@@ -3,27 +3,25 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Netflix_clone.Models;
+using Netflix_clone.Repositories;
 
 namespace Netflix_clone.Controllers
 {
     [Authorize]
     public class ProfilesController : Controller
     {
-        private readonly NetflixContext _context;
+        private readonly IGenericRepository<Profile> _profileRepo;
 
-        public ProfilesController(NetflixContext context)
+        public ProfilesController(IGenericRepository<Profile> profileRepo)
         {
-            _context = context;
+            _profileRepo = profileRepo;
         }
 
         public async Task<IActionResult> SelectProfile()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var profiles = await _context.Profiles
-                .Where(p => p.AppUserId == userId)
-                .ToListAsync();
+            var profiles = _profileRepo.FindAll(p => p.AppUserId == userId).ToList();
             return View(profiles);
         }
 
@@ -38,9 +36,7 @@ namespace Netflix_clone.Controllers
         public async Task<IActionResult> ManageProfiles()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var profiles = await _context.Profiles
-                .Where(p => p.AppUserId == userId)
-                .ToListAsync();
+            var profiles = _profileRepo.FindAll(p => p.AppUserId == userId).ToList();
             return View(profiles);
         }
 
@@ -59,15 +55,15 @@ namespace Netflix_clone.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             profile.AppUserId = userId;
 
-            _context.Profiles.Add(profile);
-            await _context.SaveChangesAsync();
+            _profileRepo.Add(profile);
+            await _profileRepo.SaveAsync();
 
             return RedirectToAction(nameof(ManageProfiles));
         }
 
         public async Task<IActionResult> UpdateProfile(int id)
         {
-            var profile = await _context.Profiles.FindAsync(id);
+            var profile = await _profileRepo.GetByIdAsync(id);
             if (profile == null)
                 return NotFound();
 
@@ -89,7 +85,7 @@ namespace Netflix_clone.Controllers
                 return View(profile);
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var existing = await _context.Profiles.FindAsync(id);
+            var existing = await _profileRepo.GetByIdAsync(id);
             if (existing == null) return NotFound();
             if (existing.AppUserId != userId && !User.IsInRole("Admin"))
                 return Forbid();
@@ -98,14 +94,14 @@ namespace Netflix_clone.Controllers
             existing.Image = profile.Image;
             existing.IsKid = profile.IsKid;
 
-            await _context.SaveChangesAsync();
+            await _profileRepo.SaveAsync();
 
             return RedirectToAction(nameof(ManageProfiles));
         }
 
         public async Task<IActionResult> DeleteProfile(int id)
         {
-            var profile = await _context.Profiles.FindAsync(id);
+            var profile = await _profileRepo.GetByIdAsync(id);
             if (profile == null)
                 return NotFound();
 
@@ -120,7 +116,7 @@ namespace Netflix_clone.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteProfileConfirmed(int id)
         {
-            var profile = await _context.Profiles.FindAsync(id);
+            var profile = await _profileRepo.GetByIdAsync(id);
             if (profile == null)
                 return NotFound();
 
@@ -132,8 +128,8 @@ namespace Netflix_clone.Controllers
             if (activeId == id)
                 HttpContext.Session.Remove("ActiveProfileId");
 
-            _context.Profiles.Remove(profile);
-            await _context.SaveChangesAsync();
+            _profileRepo.Delete(profile);
+            await _profileRepo.SaveAsync();
 
             return RedirectToAction(nameof(ManageProfiles));
         }
@@ -142,23 +138,18 @@ namespace Netflix_clone.Controllers
         [HttpGet]
         public async Task<IActionResult> GetProfileById(int id)
         {
-            var profile = await _context.Profiles
-                .Where(p => p.Id == id)
-                .Select(p => new { p.Id, p.Name, p.Image, p.IsKid, p.AppUserId })
-                .FirstOrDefaultAsync();
+            var profile = _profileRepo.Find(p => p.Id == id);
 
             if (profile == null)
                 return NotFound();
 
-            return Ok(profile);
+            return Ok(new { profile.Id, profile.Name, profile.Image, profile.IsKid, profile.AppUserId });
         }
 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllProfiles()
         {
-            var profiles = await _context.Profiles
-                                         .Include(p => p.AppUser)
-                                         .ToListAsync();
+            var profiles = _profileRepo.GetAllWithIncludes(p => p.AppUser).ToList();
             return View(profiles);
         }
     }
