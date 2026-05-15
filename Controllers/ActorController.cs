@@ -33,12 +33,14 @@ namespace Netflix_clone.Controllers
             return View(_actorRepo.GetAll());
         }
 
+        [Authorize(Roles = "Admin")]
         public ActionResult AddActor()
         {
             return View();
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public ActionResult AddActor(Actor actor)
         {
             try
@@ -53,12 +55,14 @@ namespace Netflix_clone.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         public ActionResult UpdateActor(int id)
         {
             return View(_actorRepo.GetById(id));
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public ActionResult UpdateActor(int id, Actor actor)
         {
             try
@@ -73,6 +77,7 @@ namespace Netflix_clone.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         public ActionResult DeleteActor(int id)
         {
             return View(_actorRepo.GetById(id));
@@ -80,6 +85,7 @@ namespace Netflix_clone.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public ActionResult DeleteActor(int id, Actor actor)
         {
             try

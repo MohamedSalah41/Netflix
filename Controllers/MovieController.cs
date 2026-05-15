@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Netflix_clone.Models;
 using Netflix_clone.Repositories;
@@ -47,6 +48,7 @@ namespace Netflix_clone.Controllers
             return View(movie);
         }
 
+        [Authorize(Roles = "Admin")]
         public ActionResult AddMovie()
         {
             ViewBag.Actors     = _actorRepo.GetAll();
@@ -56,6 +58,7 @@ namespace Netflix_clone.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public ActionResult AddMovie(Movie NewMovie, List<int> actorIds, List<int> categoryIds)
         {
             if (!ModelState.IsValid)
@@ -81,6 +84,7 @@ namespace Netflix_clone.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         public ActionResult Edit(int id)
         {
             var movie = _movieRepo.GetByIdWithIncludes(id, m => m.Actors, m => m.Categories);
@@ -97,6 +101,7 @@ namespace Netflix_clone.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public ActionResult Edit(int id, Movie DBMovie, List<int> actorIds, List<int> categoryIds)
         {
             if (!ModelState.IsValid)
@@ -140,6 +145,7 @@ namespace Netflix_clone.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         public ActionResult Delete(int id)
         {
             return View(_movieRepo.GetById(id));
@@ -147,6 +153,7 @@ namespace Netflix_clone.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public ActionResult Delete(int id, Movie movie)
         {
             try

@@ -21,6 +21,7 @@ namespace Netflix_clone.Controllers
 
 		}
 
+		[Authorize(Roles = "Admin")]
 		public IActionResult Add()
 		{
 			return View();
@@ -29,6 +30,7 @@ namespace Netflix_clone.Controllers
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
+		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Add(Category category)
 		{
 			if (!ModelState.IsValid)
@@ -41,6 +43,7 @@ namespace Netflix_clone.Controllers
 			return RedirectToAction(nameof(Index));
 		}
 
+		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Update(int id)
 		{
 			var category = await _categoryRepo.GetByIdAsync(id);
@@ -51,6 +54,7 @@ namespace Netflix_clone.Controllers
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
+		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Update(int id, Category category)
 		{
 			if (id != category.Id)
@@ -65,6 +69,7 @@ namespace Netflix_clone.Controllers
 			TempData["Success"] = "Category updated successfully.";
 			return RedirectToAction(nameof(Index));
 		}
+		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Delete(int id)
 		{
 			var category = await _categoryRepo.GetByIdAsync(id);
@@ -77,6 +82,7 @@ namespace Netflix_clone.Controllers
 
 		[HttpPost, ActionName("Delete")]
 		[ValidateAntiForgeryToken]
+		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> DeleteConfirmed(int id)
 		{
 			var category = await _categoryRepo.GetByIdAsync(id);

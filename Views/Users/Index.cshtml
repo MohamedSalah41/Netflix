@@ -24,8 +24,12 @@
                 <td>@user.UserName</td>
                 <td>@user.Email</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@user.Id">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@user.Id">Delete</a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@user.Id">Edit</a>
+                        <span>|</span>
+                        <a asp-action="Delete" asp-route-id="@user.Id">Delete</a>
+                    }
                 </td>
             </tr>
         }

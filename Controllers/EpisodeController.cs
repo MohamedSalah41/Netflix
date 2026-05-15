@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Netflix_clone.Models;
 using Netflix_clone.Repositories;
@@ -38,6 +39,7 @@ namespace Netflix_clone.Controllers
             return View(_episodeRepo.GetById(id));
         }
 
+        [Authorize(Roles = "Admin")]
         public ActionResult Create()
         {
             ViewBag.Seasons = _seasonRepo.GetAll();
@@ -46,6 +48,7 @@ namespace Netflix_clone.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public ActionResult Create(Episode episode)
         {
             try
@@ -63,6 +66,7 @@ namespace Netflix_clone.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         public ActionResult Edit(int id)
         {
             ViewBag.Seasons = _seasonRepo.GetAll();
@@ -71,6 +75,7 @@ namespace Netflix_clone.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public ActionResult Edit(int id, Episode episode)
         {
             try
@@ -88,6 +93,7 @@ namespace Netflix_clone.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         public ActionResult Delete(int id)
         {
             return View(_episodeRepo.GetById(id));
@@ -95,6 +101,7 @@ namespace Netflix_clone.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public ActionResult Delete(int id, Episode episode)
         {
             try
