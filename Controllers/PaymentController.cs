@@ -32,6 +32,7 @@ namespace Netflix_clone.Controllers
         }
 
         [AllowAnonymous]
+        [HttpGet("/Subscription")]
         public IActionResult Plans()
         {
             return View();

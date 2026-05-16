@@ -1,0 +1,27 @@
+@{
+    ViewBag.Title = "Contact";
+}
+
+<section style="padding:32px 4%;max-width:900px;">
+    <h1 style="color:#fff;margin-bottom:8px;">Contact</h1>
+    <p style="color:var(--text-muted)">Have a question or need support? Use the contact information or the simple form below (mock — does not send).</p>
+
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:16px;">
+        <div style="flex:1;min-width:280px;background:rgba(20,20,20,0.9);padding:16px;border-radius:10px;border:1px solid rgba(255,255,255,0.04)">
+            <h3 style="color:#fff;margin-top:0">Support</h3>
+            <p style="color:var(--text-muted);margin:0 0 8px">Email: <a href="mailto:support@@watchit.example">support@@watchit.example</a></p>
+            <p style="color:var(--text-muted);margin:0 0 8px">Phone: +1 (555) 123-4567</p>
+            <p style="color:var(--text-muted);margin:0">Address: 123 Stream Ave, Cairo, Egypt</p>
+        </div>
+
+        <form style="flex:1;min-width:300px;background:rgba(20,20,20,0.9);padding:16px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);">
+            <label style="display:block;color:var(--text-muted);font-size:13px">Your name</label>
+            <input type="text" style="width:100%;padding:8px;margin:6px 0 12px;border-radius:6px;background:#0b0b12;border:1px solid rgba(255,255,255,0.04);color:#fff" />
+            <label style="display:block;color:var(--text-muted);font-size:13px">Email</label>
+            <input type="email" style="width:100%;padding:8px;margin:6px 0 12px;border-radius:6px;background:#0b0b12;border:1px solid rgba(255,255,255,0.04);color:#fff" />
+            <label style="display:block;color:var(--text-muted);font-size:13px">Message</label>
+            <textarea style="width:100%;padding:8px;margin:6px 0 12px;border-radius:6px;background:#0b0b12;border:1px solid rgba(255,255,255,0.04);color:#fff" rows="5"></textarea>
+            <button type="button" style="background:var(--brand);color:#fff;padding:8px 12px;border-radius:8px;border:none">Send (mock)</button>
+        </form>
+    </div>
+</section>
