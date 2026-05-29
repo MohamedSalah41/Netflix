@@ -195,16 +195,9 @@ git clone https://github.com/yourusername/watchit-netflix-clone.git
 cd watchit-netflix-clone
 ```
 
-2️⃣ **Update connection string**
+2️⃣ **Configure database connection**
 
-Edit `appsettings.json`:
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=NetflixDB;Trusted_Connection=true;TrustServerCertificate=true"
-  }
-}
-```
+Update your connection string in `appsettings.json` to match your SQL Server setup.
 
 3️⃣ **Apply migrations**
 ```bash
@@ -227,9 +220,7 @@ https://localhost:5155
 
 ### Admin Features
 
-**Default Admin Account:**
-- Email: `admin@watchit.com`
-- Password: `Admin@123`
+Create an admin account through the registration system and assign admin role via database.
 
 **Admin Capabilities:**
 - ➕ Add/Edit/Delete Movies & Series
@@ -377,40 +368,6 @@ We welcome contributions! Here's how you can help:
 - Add comments for complex logic
 - Test thoroughly before submitting
 - Update documentation as needed
-
----
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 👥 Team
-
-Built with ❤️ by the WatchIt Team
-
-- **Project Lead** - [Your Name](https://github.com/yourusername)
-- **Backend Developer** - [Team Member](https://github.com/username)
-- **Frontend Developer** - [Team Member](https://github.com/username)
-- **UI/UX Designer** - [Team Member](https://github.com/username)
-
----
-
-## 📞 Contact & Support
-
-- 📧 Email: support@watchit.com
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/watchit-netflix-clone/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/watchit-netflix-clone/discussions)
-
----
-
-## 🙏 Acknowledgments
-
-- Netflix for design inspiration
-- ASP.NET Core team for the amazing framework
-- YouTube & Vimeo for video APIs
-- Open source community for tools and libraries
 
 ---
 
